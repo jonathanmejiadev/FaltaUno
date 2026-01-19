@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -45,7 +46,7 @@ export default function OnboardingIdentity() {
     if (!nickname.trim()) {
       return;
     }
-    
+
     router.push({
       pathname: '/onboarding/position',
       params: {
@@ -57,10 +58,18 @@ export default function OnboardingIdentity() {
   };
 
   const onDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(Platform.OS === 'ios');
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
+
     if (selectedDate) {
       setBirthDate(selectedDate);
     }
+  };
+
+  const confirmDate = () => {
+    if (!birthDate) setBirthDate(new Date(2000, 0, 1));
+    setShowDatePicker(false);
   };
 
   const formatDate = (date: Date) => {
@@ -79,7 +88,7 @@ export default function OnboardingIdentity() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
-        <ScrollView 
+        <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
@@ -136,7 +145,7 @@ export default function OnboardingIdentity() {
                   {birthDate ? formatDate(birthDate) : 'Seleccionar fecha'}
                 </Text>
               </TouchableOpacity>
-              
+
               {category && (
                 <View style={styles.categoryBadge}>
                   <Text style={styles.categoryText}>
@@ -146,16 +155,45 @@ export default function OnboardingIdentity() {
               )}
             </View>
 
-            {showDatePicker && (
-              <DateTimePicker
-                value={birthDate || new Date(2000, 0, 1)}
-                mode="date"
-                display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                onChange={onDateChange}
-                maximumDate={new Date()}
-                minimumDate={new Date(1950, 0, 1)}
-                themeVariant="dark"
-              />
+            {Platform.OS === 'ios' ? (
+              <Modal
+                visible={showDatePicker}
+                transparent={true}
+                animationType="slide"
+              >
+                <View style={styles.modalOverlay}>
+                  <View style={styles.modalContent}>
+                    <View style={styles.modalHeader}>
+                      <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                        <Text style={styles.modalCancelText}>Cancelar</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={confirmDate}>
+                        <Text style={styles.modalDoneText}>Listo</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <DateTimePicker
+                      value={birthDate || new Date(2000, 0, 1)}
+                      mode="date"
+                      display="spinner"
+                      onChange={onDateChange}
+                      maximumDate={new Date()}
+                      minimumDate={new Date(1950, 0, 1)}
+                      themeVariant="dark"
+                    />
+                  </View>
+                </View>
+              </Modal>
+            ) : (
+              showDatePicker && (
+                <DateTimePicker
+                  value={birthDate || new Date(2000, 0, 1)}
+                  mode="date"
+                  display="default"
+                  onChange={onDateChange}
+                  maximumDate={new Date()}
+                  minimumDate={new Date(1950, 0, 1)}
+                />
+              )
             )}
           </View>
         </ScrollView>
@@ -303,5 +341,32 @@ const styles = StyleSheet.create({
     color: Colors.dark.background,
     fontSize: 18,
     fontWeight: '700',
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  modalContent: {
+    backgroundColor: Colors.dark.surface,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingBottom: 40,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.dark.border,
+  },
+  modalCancelText: {
+    color: Colors.dark.textMuted,
+    fontSize: 16,
+  },
+  modalDoneText: {
+    color: Colors.dark.primary,
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

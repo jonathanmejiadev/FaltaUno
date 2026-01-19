@@ -59,120 +59,122 @@ export default function OnboardingPosition() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView 
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.header}>
-          <Text style={styles.title}>Tu Posición</Text>
-          <Text style={styles.subtitle}>
-            ¿Dónde brillas en la cancha?
-          </Text>
-        </View>
+      <View style={{ flex: 1 }}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.header}>
+            <Text style={styles.title}>Tu Posición</Text>
+            <Text style={styles.subtitle}>
+              ¿Dónde brillas en la cancha?
+            </Text>
+          </View>
 
-        <View style={styles.stepIndicator}>
-          <View style={[styles.step, styles.stepCompleted]} />
-          <View style={[styles.step, styles.stepActive]} />
-          <View style={styles.step} />
-        </View>
+          <View style={styles.stepIndicator}>
+            <View style={[styles.step, styles.stepCompleted]} />
+            <View style={[styles.step, styles.stepActive]} />
+            <View style={styles.step} />
+          </View>
 
-        <View style={styles.pitchContainer}>
-          <PitchSelector
-            selectedPosition={mainPosition}
-            onSelectPosition={handlePositionChange}
-          />
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Rol Específico</Text>
-          <ScrollView 
-            horizontal 
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.rolesContainer}
-          >
-            {SPECIFIC_ROLES[mainPosition].map((role) => (
-              <TouchableOpacity
-                key={role}
-                style={[
-                  styles.roleChip,
-                  specificRole === role && styles.roleChipActive,
-                ]}
-                onPress={() => setSpecificRole(role)}
-              >
-                <Text
-                  style={[
-                    styles.roleChipText,
-                    specificRole === role && styles.roleChipTextActive,
-                  ]}
-                >
-                  {role}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
-
-        <View style={styles.section}>
-          <View style={styles.versatileRow}>
-            <View style={styles.versatileInfo}>
-              <Shuffle size={20} color={Colors.dark.accent} />
-              <View>
-                <Text style={styles.versatileTitle}>Soy Versátil</Text>
-                <Text style={styles.versatileHint}>Juego de lo que sea</Text>
-              </View>
-            </View>
-            <Switch
-              value={isVersatile}
-              onValueChange={setIsVersatile}
-              trackColor={{ false: Colors.dark.border, true: Colors.dark.accentGlow }}
-              thumbColor={isVersatile ? Colors.dark.accent : Colors.dark.textMuted}
+          <View style={styles.pitchContainer}>
+            <PitchSelector
+              selectedPosition={mainPosition}
+              onSelectPosition={handlePositionChange}
             />
           </View>
-        </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Pie Hábil</Text>
-          <View style={styles.footContainer}>
-            {Object.values(FootEnum).map((foot) => (
-              <TouchableOpacity
-                key={foot}
-                style={[
-                  styles.footButton,
-                  dominantFoot === foot && styles.footButtonActive,
-                ]}
-                onPress={() => setDominantFoot(foot)}
-              >
-                <Text
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Rol Específico</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.rolesContainer}
+            >
+              {SPECIFIC_ROLES[mainPosition].map((role) => (
+                <TouchableOpacity
+                  key={role}
                   style={[
-                    styles.footButtonText,
-                    dominantFoot === foot && styles.footButtonTextActive,
+                    styles.roleChip,
+                    specificRole === role && styles.roleChipActive,
                   ]}
+                  onPress={() => setSpecificRole(role)}
                 >
-                  {FOOT_LABELS[foot]}
-                </Text>
-              </TouchableOpacity>
-            ))}
+                  <Text
+                    style={[
+                      styles.roleChipText,
+                      specificRole === role && styles.roleChipTextActive,
+                    ]}
+                  >
+                    {role}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
           </View>
+
+          <View style={styles.section}>
+            <View style={styles.versatileRow}>
+              <View style={styles.versatileInfo}>
+                <Shuffle size={20} color={Colors.dark.accent} />
+                <View>
+                  <Text style={styles.versatileTitle}>Soy Versátil</Text>
+                  <Text style={styles.versatileHint}>Juego de lo que sea</Text>
+                </View>
+              </View>
+              <Switch
+                value={isVersatile}
+                onValueChange={setIsVersatile}
+                trackColor={{ false: Colors.dark.border, true: Colors.dark.accentGlow }}
+                thumbColor={isVersatile ? Colors.dark.accent : Colors.dark.textMuted}
+              />
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Pie Hábil</Text>
+            <View style={styles.footContainer}>
+              {Object.values(FootEnum).map((foot) => (
+                <TouchableOpacity
+                  key={foot}
+                  style={[
+                    styles.footButton,
+                    dominantFoot === foot && styles.footButtonActive,
+                  ]}
+                  onPress={() => setDominantFoot(foot)}
+                >
+                  <Text
+                    style={[
+                      styles.footButtonText,
+                      dominantFoot === foot && styles.footButtonTextActive,
+                    ]}
+                  >
+                    {FOOT_LABELS[foot]}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </ScrollView>
+
+        <View style={styles.buttonRowAbsolute}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={handleBack}
+            activeOpacity={0.8}
+          >
+            <ChevronLeft size={24} color={Colors.dark.text} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.nextButton}
+            onPress={handleNext}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.nextButtonText}>Siguiente</Text>
+            <ChevronRight size={24} color={Colors.dark.background} />
+          </TouchableOpacity>
         </View>
-      </ScrollView>
-
-      <View style={styles.buttonRow}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={handleBack}
-          activeOpacity={0.8}
-        >
-          <ChevronLeft size={24} color={Colors.dark.text} />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.nextButton}
-          onPress={handleNext}
-          activeOpacity={0.8}
-        >
-          <Text style={styles.nextButtonText}>Siguiente</Text>
-          <ChevronRight size={24} color={Colors.dark.background} />
-        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -186,6 +188,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     padding: 24,
+    paddingBottom: 220,
   },
   header: {
     marginBottom: 16,
@@ -331,5 +334,16 @@ const styles = StyleSheet.create({
     color: Colors.dark.background,
     fontSize: 18,
     fontWeight: '700',
+  },
+  buttonRowAbsolute: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    padding: 24,
+    paddingTop: 20,
+    gap: 12,
+    backgroundColor: Colors.dark.background,
   },
 });

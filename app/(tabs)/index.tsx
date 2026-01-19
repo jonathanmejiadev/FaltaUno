@@ -11,10 +11,11 @@ import {
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-import { 
-  Filter, 
-  MapPin, 
+import {
+  Filter,
+  MapPin,
   Calendar,
   Users,
   Shield,
@@ -38,8 +39,8 @@ function getMarkerIcon(match: Match) {
   const needsGK = match.slots.some(
     (s) => s.role === PositionEnum.GK && s.filled_by.length < s.quantity_needed
   );
-  if (needsGK) return 'gloves';
-  return 'ball';
+  if (needsGK) return { name: 'hand-back-left' as const, color: '#FFD700' };
+  return { name: 'soccer' as const, color: '#00E676' };
 }
 
 export default function DiscoveryScreen() {
@@ -101,8 +102,8 @@ export default function DiscoveryScreen() {
           </TouchableOpacity>
         </View>
 
-        <ScrollView 
-          horizontal 
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filtersContainer}
         >
@@ -137,6 +138,7 @@ export default function DiscoveryScreen() {
             showsUserLocation
             showsMyLocationButton={false}
             customMapStyle={mapStyle}
+            userInterfaceStyle="dark"
           >
             {matches.map((match) => {
               const icon = getMarkerIcon(match);
@@ -154,11 +156,11 @@ export default function DiscoveryScreen() {
                       styles.marker,
                       selectedMatch?.id === match.id && styles.markerSelected,
                     ]}>
-                      {icon === 'gloves' ? (
-                        <Shield size={18} color={Colors.dark.goalkeeper} />
-                      ) : (
-                        <Goal size={18} color={Colors.dark.primary} />
-                      )}
+                      <MaterialCommunityIcons
+                        name={icon.name}
+                        size={18}
+                        color={icon.color}
+                      />
                     </View>
                   </View>
                 </Marker>
@@ -194,9 +196,9 @@ export default function DiscoveryScreen() {
               ${selectedMatch.price.toLocaleString()}
             </Text>
           </View>
-          
+
           <Text style={styles.matchTitle}>{selectedMatch.title}</Text>
-          
+
           <View style={styles.matchInfo}>
             <View style={styles.matchInfoRow}>
               <MapPin size={14} color={Colors.dark.textSecondary} />
@@ -227,8 +229,8 @@ export default function DiscoveryScreen() {
       ) : (
         <View style={styles.matchListContainer}>
           <Text style={styles.matchListTitle}>Próximos partidos</Text>
-          <ScrollView 
-            horizontal 
+          <ScrollView
+            horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.matchList}
           >
@@ -360,9 +362,9 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: Colors.dark.surface,
+    backgroundColor: '#000',
     borderWidth: 2,
-    borderColor: Colors.dark.primary,
+    borderColor: Colors.dark.border,
     alignItems: 'center',
     justifyContent: 'center',
   },

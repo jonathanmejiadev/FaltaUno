@@ -10,7 +10,7 @@ interface PitchSelectorProps {
 
 export default function PitchSelector({ selectedPosition, onSelectPosition }: PitchSelectorProps) {
   const positions = [
-    { position: PositionEnum.GK, top: '78%', left: '50%', label: 'POR' },
+    { position: PositionEnum.GK, top: '78%', left: '50%', label: 'ARQ' },
     { position: PositionEnum.DEF, top: '58%', left: '50%', label: 'DEF' },
     { position: PositionEnum.MID, top: '38%', left: '50%', label: 'MED' },
     { position: PositionEnum.FWD, top: '18%', left: '50%', label: 'DEL' },
@@ -25,11 +25,11 @@ export default function PitchSelector({ selectedPosition, onSelectPosition }: Pi
         <View style={styles.goalArea} />
         <View style={styles.penaltyAreaTop} />
         <View style={styles.goalAreaTop} />
-        
+
         {positions.map((pos) => {
           const isSelected = selectedPosition === pos.position;
           const positionColor = Colors.positions[pos.position];
-          
+
           return (
             <TouchableOpacity
               key={pos.position}
@@ -48,7 +48,7 @@ export default function PitchSelector({ selectedPosition, onSelectPosition }: Pi
           );
         })}
       </View>
-      
+
       <View style={styles.selectedInfo}>
         <Text style={styles.selectedText}>
           Posición: <Text style={[styles.selectedValue, { color: Colors.positions[selectedPosition] }]}>

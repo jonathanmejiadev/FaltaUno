@@ -211,13 +211,13 @@ export const mockApi = {
     await delay(400);
     const match = MOCK_MATCHES.find((m) => m.id === matchId);
     if (!match) return false;
-    
+
     const slot = match.slots.find((s) => s.id === slotId);
     if (!slot) return false;
-    
+
     if (slot.filled_by.length >= slot.quantity_needed) return false;
     if (slot.filled_by.includes(userId)) return false;
-    
+
     slot.filled_by.push(userId);
     console.log('[MockAPI] joinMatch:', matchId, slotId, userId);
     return true;
@@ -231,17 +231,18 @@ export const mockApi = {
 
 export function calculateCategory(birthDate: Date | null): string {
   if (!birthDate) return 'Libre';
-  
+
   const today = new Date();
-  const age = today.getFullYear() - birthDate.getFullYear();
-  
-  if (age < 18) return 'Juvenil';
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+
   if (age < 21) return 'Sub-21';
-  if (age < 25) return 'Sub-25';
-  if (age < 30) return 'Sub-30';
-  if (age < 35) return 'Senior';
-  if (age < 40) return 'Senior +35';
-  return 'Veterano +40';
+  if (age < 35) return 'Master';
+  return 'Senior +35';
 }
 
 export function getTotalSlots(match: Match): { filled: number; total: number } {
