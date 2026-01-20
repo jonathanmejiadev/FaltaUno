@@ -22,7 +22,7 @@ import {
 import Colors from '@/constants/colors';
 import { useAppStore } from '@/store/useAppStore';
 import StatsRadarComponent from '@/components/StatsRadar';
-import { POSITION_LABELS, FOOT_LABELS } from '@/types';
+import { POSITION_LABELS, FOOT_LABELS, AGE_CATEGORY_LABELS } from '@/types';
 
 export default function ProfileScreen() {
   const { user, logout } = useAppStore();
@@ -74,7 +74,7 @@ export default function ProfileScreen() {
         <View style={styles.profileCard}>
           <View style={styles.avatarContainer}>
             <Image
-              source={{ uri: user.avatar_url }}
+              source={user.avatar_url}
               style={styles.avatar}
               contentFit="cover"
             />
@@ -87,7 +87,9 @@ export default function ProfileScreen() {
           </View>
 
           <Text style={styles.nickname}>{user.nickname}</Text>
-          <Text style={styles.category}>{user.category}</Text>
+          <View style={styles.categoryBadge}>
+            <Text style={styles.categoryText}>Categoría: {AGE_CATEGORY_LABELS[user.category]}</Text>
+          </View>
 
           <View style={styles.positionBadge}>
             <Text style={styles.positionText}>
@@ -262,10 +264,19 @@ const styles = StyleSheet.create({
     color: Colors.dark.text,
     marginBottom: 4,
   },
-  category: {
-    fontSize: 14,
-    color: Colors.dark.textSecondary,
+  categoryBadge: {
+    backgroundColor: Colors.dark.primary + '15',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.dark.primary + '30',
     marginBottom: 12,
+  },
+  categoryText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Colors.dark.primary,
   },
   positionBadge: {
     backgroundColor: Colors.dark.primaryGlow,

@@ -55,7 +55,12 @@ function RootLayoutNav() {
         console.error('[Layout] Error loading user:', error);
       } finally {
         setIsReady(true);
-        await SplashScreen.hideAsync();
+        try {
+          // Wrap in try-catch to avoid "No native splash screen registered" error
+          await SplashScreen.hideAsync();
+        } catch (e) {
+          console.warn('[SplashScreen] hideAsync error:', e);
+        }
       }
     };
     init();
@@ -96,13 +101,6 @@ function RootLayoutNav() {
 }
 
 export default function RootLayout() {
-
-  // AGREGA ESTO TEMPORALMENTE
-  useEffect(() => {
-    AsyncStorage.clear().then(() => {
-      console.log('🔥 Storage borrado por completo');
-    });
-  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

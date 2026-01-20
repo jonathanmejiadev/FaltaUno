@@ -10,10 +10,10 @@ interface PitchSelectorProps {
 
 export default function PitchSelector({ selectedPosition, onSelectPosition }: PitchSelectorProps) {
   const positions = [
-    { position: PositionEnum.GK, top: '78%', left: '50%', label: 'ARQ' },
-    { position: PositionEnum.DEF, top: '58%', left: '50%', label: 'DEF' },
-    { position: PositionEnum.MID, top: '38%', left: '50%', label: 'MED' },
-    { position: PositionEnum.FWD, top: '18%', left: '50%', label: 'DEL' },
+    { position: PositionEnum.GK, top: '78%' as const, left: '50%' as const, label: 'ARQ' },
+    { position: PositionEnum.DEF, top: '58%' as const, left: '50%' as const, label: 'DEF' },
+    { position: PositionEnum.MID, top: '38%' as const, left: '50%' as const, label: 'MED' },
+    { position: PositionEnum.FWD, top: '18%' as const, left: '50%' as const, label: 'DEL' },
   ];
 
   return (

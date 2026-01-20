@@ -10,6 +10,7 @@ import {
   ScrollView,
   Modal,
 } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronRight, Gamepad2, Calendar } from 'lucide-react-native';
@@ -19,12 +20,12 @@ import AvatarSelector from '@/components/AvatarSelector';
 import { calculateCategory } from '@/services/mockApi';
 
 const AVATARS = [
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1599566150163-29194dcabd36?w=200&h=200&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=200&h=200&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=200&h=200&fit=crop&crop=face',
+  require('../../assets/images/avatars/sc0.png'),
+  require('../../assets/images/avatars/sc1.png'),
+  require('../../assets/images/avatars/sc2.png'),
+  require('../../assets/images/avatars/sc3.png'),
+  require('../../assets/images/avatars/sc4.png'),
+  require('../../assets/images/avatars/sc5.png'),
 ];
 
 export default function OnboardingIdentity() {
@@ -94,11 +95,11 @@ export default function OnboardingIdentity() {
         >
           <View style={styles.header}>
             <View style={styles.iconContainer}>
-              <Gamepad2 size={40} color={Colors.dark.primary} />
+              <MaterialCommunityIcons name="soccer" size={48} color={Colors.dark.primary} />
             </View>
-            <Text style={styles.title}>Crea tu Jugador</Text>
+            <Text style={styles.title}>¡Armá tu Ficha de Crack!</Text>
             <Text style={styles.subtitle}>
-              Dale vida a tu personaje en la cancha
+              Cargá tus stats y demostrá qué sabés hacer en la cancha.
             </Text>
           </View>
 
@@ -149,7 +150,7 @@ export default function OnboardingIdentity() {
               {category && (
                 <View style={styles.categoryBadge}>
                   <Text style={styles.categoryText}>
-                    ¡Eres categoría <Text style={styles.categoryHighlight}>{category}</Text>!
+                    ¡Sos categoría <Text style={styles.categoryHighlight}>{category}</Text>! Rompela en el próximo partido.
                   </Text>
                 </View>
               )}
@@ -229,13 +230,19 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   iconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 90,
+    height: 90,
+    borderRadius: 45,
     backgroundColor: Colors.dark.primaryGlow,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
+    // Efecto de resplandor neón
+    shadowColor: Colors.dark.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 15,
+    elevation: 10,
   },
   title: {
     fontSize: 28,

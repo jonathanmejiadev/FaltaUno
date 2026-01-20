@@ -21,6 +21,24 @@ export enum FormatEnum {
 export enum MatchTypeEnum {
   CHILL = 'CHILL',
   COMPETITIVE = 'COMPETITIVE',
+  PRO = 'PRO',
+}
+
+export enum SurfaceEnum {
+  SYNTHETIC = 'SYNTHETIC',
+  GRASS = 'GRASS',
+  DIRT = 'DIRT',
+  PARQUET = 'PARQUET',
+  FUTSAL = 'FUTSAL',
+}
+
+export enum AgeCategoryEnum {
+  OPEN = 'OPEN',
+  SUB21 = 'SUB21',
+  ELITE = 'ELITE',
+  MASTER = 'MASTER',
+  SENIOR = 'SENIOR',
+  LEYENDA = 'LEYENDA',
 }
 
 export interface StatsRadar {
@@ -41,9 +59,9 @@ export interface FootballSpecs {
 export interface UserProfile {
   id: string;
   nickname: string;
-  avatar_url: string;
+  avatar_url: any;
   birth_date: Date;
-  category: string;
+  category: AgeCategoryEnum;
   is_versatile: boolean;
   football_specs: FootballSpecs;
   stats_radar: StatsRadar;
@@ -63,6 +81,12 @@ export interface MatchLocation {
   address: string;
 }
 
+export interface MatchRequest {
+  user: UserProfile;
+  requested_at: Date;
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+}
+
 export interface Match {
   id: string;
   title: string;
@@ -70,9 +94,13 @@ export interface Match {
   location: MatchLocation;
   date: Date;
   type: MatchTypeEnum;
+  surface: SurfaceEnum;
   slots: MatchSlot[];
   organizer_id: string;
   price: number;
+  ageCategory: AgeCategoryEnum[];
+  requests?: MatchRequest[];
+  waitlist?: MatchRequest[];
 }
 
 export interface OnboardingData {
@@ -80,6 +108,7 @@ export interface OnboardingData {
   avatar_url: string;
   birth_date: Date | null;
   main_position: PositionEnum;
+  age_category: AgeCategoryEnum;
   specific_role: string;
   is_versatile: boolean;
   dominant_foot: FootEnum;
@@ -88,10 +117,10 @@ export interface OnboardingData {
 
 export const POSITION_LABELS: Record<PositionEnum, string> = {
   [PositionEnum.GK]: 'Arquero',
-  [PositionEnum.DEF]: 'Defensa',
+  [PositionEnum.DEF]: 'Defensor',
   [PositionEnum.MID]: 'Mediocampista',
   [PositionEnum.FWD]: 'Delantero',
-  [PositionEnum.ANY]: 'Cualquiera',
+  [PositionEnum.ANY]: 'Libre',
 };
 
 export const FOOT_LABELS: Record<FootEnum, string> = {
@@ -115,4 +144,22 @@ export const FORMAT_PLAYERS: Record<FormatEnum, number> = {
 export const MATCH_TYPE_LABELS: Record<MatchTypeEnum, string> = {
   [MatchTypeEnum.CHILL]: 'Amistoso',
   [MatchTypeEnum.COMPETITIVE]: 'Competitivo',
+  [MatchTypeEnum.PRO]: 'Pro',
+};
+
+export const SURFACE_LABELS: Record<SurfaceEnum, string> = {
+  [SurfaceEnum.SYNTHETIC]: 'Sintético',
+  [SurfaceEnum.GRASS]: 'Césped',
+  [SurfaceEnum.DIRT]: 'Tierra',
+  [SurfaceEnum.PARQUET]: 'Parquet',
+  [SurfaceEnum.FUTSAL]: 'Futsal',
+};
+
+export const AGE_CATEGORY_LABELS: Record<AgeCategoryEnum, string> = {
+  [AgeCategoryEnum.OPEN]: 'Edad Libre',
+  [AgeCategoryEnum.SUB21]: 'Sub-21',
+  [AgeCategoryEnum.ELITE]: 'Elite',
+  [AgeCategoryEnum.MASTER]: 'Master',
+  [AgeCategoryEnum.SENIOR]: 'Senior',
+  [AgeCategoryEnum.LEYENDA]: 'Leyenda',
 };

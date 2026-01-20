@@ -23,11 +23,21 @@ import {
   Goal,
   Search,
   X,
+  Zap,
 } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 import { useAppStore } from '@/store/useAppStore';
 import { mockApi, getTotalSlots } from '@/services/mockApi';
-import { Match, FormatEnum, PositionEnum, FORMAT_LABELS } from '@/types';
+import {
+  Match,
+  FormatEnum,
+  PositionEnum,
+  FORMAT_LABELS,
+  AgeCategoryEnum,
+  AGE_CATEGORY_LABELS,
+  MATCH_TYPE_LABELS,
+  MatchTypeEnum
+} from '@/types';
 
 const { width } = Dimensions.get('window');
 
@@ -42,7 +52,7 @@ function getMarkerIcon(match: Match) {
   const needsGK = match.slots.some(
     (s) => s.role === PositionEnum.GK && s.filled_by.length < s.quantity_needed
   );
-  if (needsGK) return { name: 'hand-back-left' as const, color: '#FFD700' };
+  if (needsGK) return { name: 'hand-back-left' as const, color: '#FFD600' };
   return { name: 'soccer' as const, color: '#00E676' };
 }
 
@@ -98,34 +108,18 @@ const MatchMarker = ({ match, isSelected, onPress }: MatchMarkerProps) => {
 
 export default function DiscoveryScreen() {
   const router = useRouter();
-  const { selectedFormat, setSelectedFormat, user } = useAppStore();
-  const [matches, setMatches] = useState<Match[]>([]);
+  const { selectedFormat, setSelectedFormat, user, matches } = useAppStore();
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
-  const [, setIsLoading] = useState(true);
+  const isLoading = useAppStore(s => s.isLoading);
   const mapRef = useRef<MapView>(null);
 
   const centerMap = () => {
     mapRef.current?.animateToRegion(INITIAL_REGION, 1000);
   };
 
-  const loadMatches = React.useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await mockApi.getMatches(
-        selectedFormat ? { format: selectedFormat } : undefined
-      );
-      setMatches(data);
-      console.log('[Discovery] Loaded matches:', data.length);
-    } catch (error) {
-      console.error('[Discovery] Error loading matches:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [selectedFormat]);
-
-  useEffect(() => {
-    loadMatches();
-  }, [loadMatches]);
+  const filteredMatches = selectedFormat
+    ? matches.filter(m => m.format === selectedFormat)
+    : matches;
 
   const handleMarkerPress = React.useCallback((match: Match) => {
     setSelectedMatch(match);
@@ -148,21 +142,15 @@ export default function DiscoveryScreen() {
   const formats = [null, FormatEnum.F5, FormatEnum.F7, FormatEnum.F11];
 
   const memoizedMarkers = React.useMemo(() => {
-    return matches.map((match) => {
-      if (!match.location?.latitude || !match.location?.longitude) return null;
-
-      const isSelected = selectedMatch?.id === match.id;
-
-      return (
-        <MatchMarker
-          key={match.id}
-          match={match}
-          isSelected={isSelected}
-          onPress={handleMarkerPress}
-        />
-      );
-    });
-  }, [matches, selectedMatch?.id, handleMarkerPress]);
+    return filteredMatches.map((match) => (
+      <MatchMarker
+        key={match.id}
+        match={match}
+        isSelected={selectedMatch?.id === match.id}
+        onPress={handleMarkerPress}
+      />
+    ));
+  }, [filteredMatches, selectedMatch, handleMarkerPress]);
 
   return (
     <View style={styles.container}>
@@ -258,10 +246,40 @@ export default function DiscoveryScreen() {
           activeOpacity={0.9}
         >
           <View style={styles.matchCardHeader}>
-            <View style={styles.formatBadge}>
-              <Text style={styles.formatBadgeText}>
-                {FORMAT_LABELS[selectedMatch.format]}
-              </Text>
+            <View style={styles.badgeRow}>
+              <View style={styles.formatBadge}>
+                <Text style={styles.formatBadgeText}>
+                  {FORMAT_LABELS[selectedMatch.format]}
+                </Text>
+              </View>
+              <View style={[
+                styles.typeBadge,
+                selectedMatch.type === MatchTypeEnum.PRO && styles.typeBadgePro
+              ]}>
+                <Text style={[
+                  styles.typeBadgeText,
+                  selectedMatch.type === MatchTypeEnum.PRO && styles.typeBadgeTextPro
+                ]}>
+                  {MATCH_TYPE_LABELS[selectedMatch.type]}
+                </Text>
+              </View>
+              <View style={[
+                styles.ageBadgeSmall,
+                selectedMatch.ageCategory.includes(AgeCategoryEnum.ELITE) && styles.ageBadgeElite
+              ]}>
+                {selectedMatch.ageCategory.includes(AgeCategoryEnum.ELITE) && (
+                  <Zap size={10} color={Colors.dark.accent} style={{ marginRight: 2 }} />
+                )}
+                <Text style={[
+                  styles.ageBadgeTextSmall,
+                  selectedMatch.ageCategory.includes(AgeCategoryEnum.ELITE) && { color: Colors.dark.accent }
+                ]}>
+                  {selectedMatch.ageCategory.includes(AgeCategoryEnum.OPEN) || selectedMatch.ageCategory.length > 3
+                    ? 'Edad: Libre'
+                    : selectedMatch.ageCategory.map(cat => AGE_CATEGORY_LABELS[cat]).join(' • ')
+                  }
+                </Text>
+              </View>
             </View>
             <View style={styles.headerRight}>
               <Text style={styles.matchPrice}>
@@ -540,6 +558,48 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderWidth: 1,
     borderColor: Colors.dark.border,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    gap: 6,
+    alignItems: 'center',
+  },
+  typeBadge: {
+    backgroundColor: Colors.dark.surface,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
+  },
+  typeBadgePro: {
+    borderColor: Colors.dark.primary + '50',
+  },
+  typeBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.dark.textSecondary,
+  },
+  typeBadgeTextPro: {
+    color: Colors.dark.primary,
+  },
+  ageBadgeSmall: {
+    backgroundColor: Colors.dark.surface,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  ageBadgeElite: {
+    borderColor: Colors.dark.accent + '50',
+  },
+  ageBadgeTextSmall: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: Colors.dark.textSecondary,
   },
   matchInfo: {
     gap: 6,

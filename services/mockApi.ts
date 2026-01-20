@@ -6,27 +6,30 @@ import {
   FootEnum,
   FormatEnum,
   MatchTypeEnum,
+  SurfaceEnum,
   OnboardingData,
+  MatchRequest,
+  AgeCategoryEnum,
 } from '@/types';
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const AVATARS = [
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1599566150163-29194dcabd36?w=200&h=200&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=200&h=200&fit=crop&crop=face',
-  'https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=200&h=200&fit=crop&crop=face',
+  require('../assets/images/avatars/sc0.png'),
+  require('../assets/images/avatars/sc1.png'),
+  require('../assets/images/avatars/sc2.png'),
+  require('../assets/images/avatars/sc3.png'),
+  require('../assets/images/avatars/sc4.png'),
+  require('../assets/images/avatars/sc5.png'),
 ];
 
-const MOCK_USERS: UserProfile[] = [
+export const MOCK_USERS: UserProfile[] = [
   {
     id: '1',
     nickname: 'ElPibe10',
     avatar_url: AVATARS[0],
     birth_date: new Date('1995-06-24'),
-    category: 'Senior',
+    category: AgeCategoryEnum.MASTER,
     is_versatile: false,
     football_specs: {
       main_position: PositionEnum.MID,
@@ -41,7 +44,7 @@ const MOCK_USERS: UserProfile[] = [
     nickname: 'Muralla',
     avatar_url: AVATARS[1],
     birth_date: new Date('1990-03-15'),
-    category: 'Senior +30',
+    category: AgeCategoryEnum.MASTER,
     is_versatile: false,
     football_specs: {
       main_position: PositionEnum.DEF,
@@ -56,7 +59,7 @@ const MOCK_USERS: UserProfile[] = [
     nickname: 'ElGato',
     avatar_url: AVATARS[2],
     birth_date: new Date('1998-11-22'),
-    category: 'Sub-30',
+    category: AgeCategoryEnum.MASTER,
     is_versatile: false,
     football_specs: {
       main_position: PositionEnum.GK,
@@ -65,6 +68,36 @@ const MOCK_USERS: UserProfile[] = [
     },
     stats_radar: { pace: 4, shooting: 2, passing: 5, defense: 8, physical: 7, stamina: 6 },
     media: 6.2,
+  },
+  {
+    id: '4',
+    nickname: 'Goleador',
+    avatar_url: AVATARS[3],
+    birth_date: new Date('2000-01-10'),
+    category: AgeCategoryEnum.MASTER,
+    is_versatile: true,
+    football_specs: {
+      main_position: PositionEnum.FWD,
+      specific_role: 'Killer',
+      dominant_foot: FootEnum.RIGHT,
+    },
+    stats_radar: { pace: 9, shooting: 9, passing: 6, defense: 3, physical: 7, stamina: 8 },
+    media: 8.2,
+  },
+  {
+    id: '5',
+    nickname: 'Mago',
+    avatar_url: AVATARS[4],
+    birth_date: new Date('1997-08-05'),
+    category: AgeCategoryEnum.MASTER,
+    is_versatile: false,
+    football_specs: {
+      main_position: PositionEnum.MID,
+      specific_role: 'Playmaker',
+      dominant_foot: FootEnum.BOTH,
+    },
+    stats_radar: { pace: 7, shooting: 7, passing: 9, defense: 5, physical: 6, stamina: 8 },
+    media: 7.8,
   },
 ];
 
@@ -80,12 +113,22 @@ const MOCK_MATCHES: Match[] = [
     },
     date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
     type: MatchTypeEnum.CHILL,
+    surface: SurfaceEnum.SYNTHETIC,
     slots: [
       { id: 's1', role: PositionEnum.GK, quantity_needed: 2, filled_by: ['3'] },
       { id: 's2', role: PositionEnum.ANY, quantity_needed: 8, filled_by: ['1', '2'] },
     ],
     organizer_id: '1',
     price: 5000,
+    ageCategory: [AgeCategoryEnum.MASTER],
+    requests: [
+      {
+        user: MOCK_USERS[1],
+        requested_at: new Date(),
+        status: 'PENDING',
+      },
+    ],
+    waitlist: [],
   },
   {
     id: 'm2',
@@ -98,6 +141,7 @@ const MOCK_MATCHES: Match[] = [
     },
     date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
     type: MatchTypeEnum.COMPETITIVE,
+    surface: SurfaceEnum.GRASS,
     slots: [
       { id: 's3', role: PositionEnum.GK, quantity_needed: 2, filled_by: [] },
       { id: 's4', role: PositionEnum.DEF, quantity_needed: 4, filled_by: ['2'] },
@@ -106,6 +150,7 @@ const MOCK_MATCHES: Match[] = [
     ],
     organizer_id: '2',
     price: 8000,
+    ageCategory: [AgeCategoryEnum.ELITE],
   },
   {
     id: 'm3',
@@ -118,6 +163,7 @@ const MOCK_MATCHES: Match[] = [
     },
     date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
     type: MatchTypeEnum.COMPETITIVE,
+    surface: SurfaceEnum.GRASS,
     slots: [
       { id: 's7', role: PositionEnum.GK, quantity_needed: 2, filled_by: ['3'] },
       { id: 's8', role: PositionEnum.DEF, quantity_needed: 8, filled_by: ['2'] },
@@ -126,6 +172,21 @@ const MOCK_MATCHES: Match[] = [
     ],
     organizer_id: '1',
     price: 12000,
+    ageCategory: [AgeCategoryEnum.MASTER],
+    requests: [
+      {
+        user: MOCK_USERS[3],
+        requested_at: new Date(),
+        status: 'PENDING',
+      },
+    ],
+    waitlist: [
+      {
+        user: MOCK_USERS[4],
+        requested_at: new Date(),
+        status: 'PENDING',
+      },
+    ],
   },
   {
     id: 'm4',
@@ -138,11 +199,13 @@ const MOCK_MATCHES: Match[] = [
     },
     date: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
     type: MatchTypeEnum.CHILL,
+    surface: SurfaceEnum.PARQUET,
     slots: [
       { id: 's11', role: PositionEnum.ANY, quantity_needed: 10, filled_by: ['1', '2', '3'] },
     ],
     organizer_id: '3',
     price: 4500,
+    ageCategory: [AgeCategoryEnum.SUB21],
   },
 ];
 
@@ -180,13 +243,12 @@ export const mockApi = {
 
   createUser: async (data: OnboardingData): Promise<UserProfile> => {
     await delay(600);
-    const category = calculateCategory(data.birth_date);
     const newUser: UserProfile = {
       id: `user_${Date.now()}`,
       nickname: data.nickname,
       avatar_url: data.avatar_url,
       birth_date: data.birth_date || new Date(),
-      category,
+      category: calculateAgeCategory(data.birth_date),
       is_versatile: data.is_versatile,
       football_specs: {
         main_position: data.main_position,
@@ -229,6 +291,52 @@ export const mockApi = {
     return true;
   },
 
+  updateMatch: async (id: string, data: Partial<Match>): Promise<Match | null> => {
+    await delay(500);
+    const index = MOCK_MATCHES.findIndex((m) => m.id === id);
+    if (index === -1) return null;
+    MOCK_MATCHES[index] = { ...MOCK_MATCHES[index], ...data };
+    console.log('[MockAPI] updateMatch:', id, MOCK_MATCHES[index]);
+    return MOCK_MATCHES[index];
+  },
+
+  getMatchesByOrganizer: async (organizerId: string): Promise<Match[]> => {
+    await delay(400);
+    const matches = MOCK_MATCHES.filter((m) => m.organizer_id === organizerId);
+    console.log('[MockAPI] getMatchesByOrganizer:', organizerId, matches.length);
+    return matches;
+  },
+
+  respondToRequest: async (
+    matchId: string,
+    userId: string,
+    status: 'ACCEPTED' | 'REJECTED'
+  ): Promise<boolean> => {
+    await delay(500);
+    const match = MOCK_MATCHES.find((m) => m.id === matchId);
+    if (!match || !match.requests) return false;
+
+    const requestIndex = match.requests.findIndex((r) => r.user.id === userId);
+    if (requestIndex === -1) return false;
+
+    if (status === 'ACCEPTED') {
+      match.requests[requestIndex].status = 'ACCEPTED';
+      // Mover a filled_by en el slot correspondiente (simplificado: ANY slot)
+      const slot = match.slots.find(s => s.filled_by.length < s.quantity_needed);
+      if (slot) {
+        slot.filled_by.push(userId);
+      }
+    } else {
+      match.requests[requestIndex].status = 'REJECTED';
+    }
+
+    // Remover de la lista de pendientes (para la UI)
+    match.requests = match.requests.filter(r => r.user.id !== userId);
+
+    console.log('[MockAPI] respondToRequest:', matchId, userId, status);
+    return true;
+  },
+
   getAvatars: async (): Promise<string[]> => {
     await delay(200);
     return AVATARS;
@@ -236,7 +344,7 @@ export const mockApi = {
 };
 
 export function calculateCategory(birthDate: Date | null): string {
-  if (!birthDate) return 'Libre';
+  if (!birthDate) return 'Master';
 
   const today = new Date();
   let age = today.getFullYear() - birthDate.getFullYear();
@@ -247,8 +355,28 @@ export function calculateCategory(birthDate: Date | null): string {
   }
 
   if (age < 21) return 'Sub-21';
-  if (age < 35) return 'Master';
-  return 'Senior +35';
+  if (age <= 30) return 'Elite';
+  if (age <= 40) return 'Master';
+  if (age <= 50) return 'Senior';
+  return 'Leyenda';
+}
+
+export function calculateAgeCategory(birthDate: Date | null): AgeCategoryEnum {
+  if (!birthDate) return AgeCategoryEnum.MASTER;
+
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+
+  if (age < 21) return AgeCategoryEnum.SUB21;
+  if (age <= 30) return AgeCategoryEnum.ELITE;
+  if (age <= 40) return AgeCategoryEnum.MASTER;
+  if (age <= 50) return AgeCategoryEnum.SENIOR;
+  return AgeCategoryEnum.LEYENDA;
 }
 
 export function getTotalSlots(match: Match): { filled: number; total: number } {

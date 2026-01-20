@@ -28,9 +28,10 @@ function getMessage(value: number, messages: string[]): string {
 }
 
 function getFeedback(value: number): { text: string; color: string } {
-  if (value > 8) return { text: '¡Elite!', color: Colors.dark.primary };
-  if (value > 5) return { text: 'Pro', color: Colors.dark.accent };
-  return { text: 'Base', color: Colors.dark.textSecondary };
+  if (value >= 9) return { text: 'ELITE', color: Colors.dark.primary };
+  if (value >= 7) return { text: 'PRO', color: Colors.dark.accent };
+  if (value >= 5) return { text: 'AMATEUR', color: Colors.dark.info };
+  return { text: 'BASE', color: Colors.dark.textSecondary };
 }
 
 export default function StatsRadarComponent({ stats, onStatChange, readonly = false }: StatsRadarProps) {
@@ -39,12 +40,7 @@ export default function StatsRadarComponent({ stats, onStatChange, readonly = fa
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Atributos del Jugador</Text>
-        <View style={styles.ratingBadge}>
-          <Text style={styles.ratingText}>{avgRating}</Text>
-        </View>
-      </View>
+      {/* Eliminamos el header interno para usar el de la pantalla de Onboarding */}
 
       {STAT_CONFIG.map((config) => {
         const value = stats[config.key];
@@ -97,9 +93,8 @@ export default function StatsRadarComponent({ stats, onStatChange, readonly = fa
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: Colors.dark.surface,
-    borderRadius: 16,
-    padding: 20,
+    backgroundColor: 'transparent',
+    paddingVertical: 10,
   },
   header: {
     flexDirection: 'row',
@@ -144,14 +139,22 @@ const styles = StyleSheet.create({
   },
   statValueContainer: {
     backgroundColor: Colors.dark.surfaceLight,
-    paddingHorizontal: 10,
+    paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.dark.primary + '40',
+    // Efecto de brillo
+    shadowColor: Colors.dark.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
+    elevation: 3,
   },
   statValue: {
     color: Colors.dark.primary,
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   sliderContainer: {
     flexDirection: 'row',

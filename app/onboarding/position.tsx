@@ -6,6 +6,9 @@ import {
   StyleSheet,
   ScrollView,
   Switch,
+  Platform,
+  UIManager,
+  LayoutAnimation,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,6 +25,10 @@ const SPECIFIC_ROLES: Record<PositionEnum, string[]> = {
   [PositionEnum.ANY]: ['Comodín'],
 };
 
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 export default function OnboardingPosition() {
   const router = useRouter();
   const params = useLocalSearchParams<{
@@ -36,6 +43,7 @@ export default function OnboardingPosition() {
   const [dominantFoot, setDominantFoot] = useState<FootEnum>(FootEnum.RIGHT);
 
   const handlePositionChange = (position: PositionEnum) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setMainPosition(position);
     setSpecificRole(SPECIFIC_ROLES[position][0]);
   };
@@ -65,10 +73,8 @@ export default function OnboardingPosition() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.header}>
-            <Text style={styles.title}>Tu Posición</Text>
-            <Text style={styles.subtitle}>
-              ¿Dónde brillas en la cancha?
-            </Text>
+            <Text style={styles.title}>¿De qué jugás?</Text>
+            <Text style={styles.subtitle}>Elegí tu posición en la cancha.</Text>
           </View>
 
           <View style={styles.stepIndicator}>
@@ -163,7 +169,7 @@ export default function OnboardingPosition() {
             onPress={handleBack}
             activeOpacity={0.8}
           >
-            <ChevronLeft size={24} color={Colors.dark.text} />
+            <ChevronLeft size={24} color={Colors.dark.textSecondary} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -172,7 +178,7 @@ export default function OnboardingPosition() {
             activeOpacity={0.8}
           >
             <Text style={styles.nextButtonText}>Siguiente</Text>
-            <ChevronRight size={24} color={Colors.dark.background} />
+            <ChevronRight size={18} color={Colors.dark.background} />
           </TouchableOpacity>
         </View>
       </View>
@@ -191,23 +197,24 @@ const styles = StyleSheet.create({
     paddingBottom: 220,
   },
   header: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   title: {
     fontSize: 28,
     fontWeight: '800',
     color: Colors.dark.text,
-    marginBottom: 8,
+    marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
     color: Colors.dark.textSecondary,
+    marginBottom: 8,
   },
   stepIndicator: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 8,
-    marginBottom: 24,
+    marginBottom: 16,
   },
   step: {
     width: 40,

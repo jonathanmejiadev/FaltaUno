@@ -5,21 +5,21 @@ import { Check } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 
 interface AvatarSelectorProps {
-  avatars: string[];
-  selectedAvatar: string;
-  onSelectAvatar: (avatar: string) => void;
+  avatars: any[];
+  selectedAvatar: any;
+  onSelectAvatar: (avatar: any) => void;
 }
 
 export default function AvatarSelector({ avatars, selectedAvatar, onSelectAvatar }: AvatarSelectorProps) {
   return (
-    <ScrollView 
-      horizontal 
+    <ScrollView
+      horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.container}
     >
       {avatars.map((avatar, index) => {
         const isSelected = selectedAvatar === avatar;
-        
+
         return (
           <TouchableOpacity
             key={index}
@@ -28,7 +28,7 @@ export default function AvatarSelector({ avatars, selectedAvatar, onSelectAvatar
             activeOpacity={0.7}
           >
             <Image
-              source={{ uri: avatar }}
+              source={avatar}
               style={styles.avatar}
               contentFit="cover"
             />

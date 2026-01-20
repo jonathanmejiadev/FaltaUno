@@ -39,18 +39,21 @@ import {
   Match,
   UserProfile,
   MatchSlot,
+  MatchTypeEnum,
+  SurfaceEnum,
+  PositionEnum,
   FORMAT_LABELS,
   MATCH_TYPE_LABELS,
+  SURFACE_LABELS,
   POSITION_LABELS,
-  MatchTypeEnum,
-  PositionEnum,
+  AgeCategoryEnum,
+  AGE_CATEGORY_LABELS,
 } from '@/types';
 
 export default function MatchDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { user } = useAppStore();
-
+  const { user, matches, isLoading: storeLoading } = useAppStore();
   const [match, setMatch] = useState<Match | null>(null);
   const [players, setPlayers] = useState<UserProfile[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -62,7 +65,14 @@ export default function MatchDetailScreen() {
 
       setIsLoading(true);
       try {
-        const matchData = await mockApi.getMatchById(id);
+        // Primero buscar en el store (reactivo)
+        const storeMatch = matches.find(m => m.id === id);
+
+        let matchData: Match | null = storeMatch || null;
+        if (!matchData && !storeLoading) {
+          matchData = await mockApi.getMatchById(id);
+        }
+
         setMatch(matchData);
 
         if (matchData) {
@@ -77,8 +87,10 @@ export default function MatchDetailScreen() {
       }
     };
 
-    loadMatch();
-  }, [id]);
+    if (id) {
+      loadMatch();
+    }
+  }, [id, matches, storeLoading]);
 
   const averageLevel = useMemo(() => {
     if (players.length === 0) return (5.0).toFixed(1);
@@ -99,20 +111,42 @@ export default function MatchDetailScreen() {
       return;
     }
 
-    setIsJoining(true);
-    try {
-      const success = await mockApi.joinMatch(match.id, availableSlot.id, user.id);
-      if (success) {
-        Alert.alert('¡Listo!', 'Te anotaste al partido', [
-          { text: 'OK', onPress: () => router.back() },
-        ]);
+    // Validación de edad
+    const userCategory = user.category as AgeCategoryEnum;
+    const allowedCategories = match.ageCategory;
+    const isAllowed = allowedCategories.includes(AgeCategoryEnum.OPEN) || allowedCategories.includes(userCategory);
+
+    const performJoin = async () => {
+      setIsJoining(true);
+      try {
+        const success = await mockApi.joinMatch(match.id, availableSlot.id, user.id);
+        if (success) {
+          Alert.alert('¡Listo!', 'Te anotaste al partido', [
+            { text: 'OK', onPress: () => router.back() },
+          ]);
+        }
+      } catch (error) {
+        console.error('[MatchDetail] Error joining match:', error);
+        Alert.alert('Error', 'No se pudo unir al partido');
+      } finally {
+        setIsJoining(false);
       }
-    } catch (error) {
-      console.error('[MatchDetail] Error joining match:', error);
-      Alert.alert('Error', 'No se pudo unir al partido');
-    } finally {
-      setIsJoining(false);
+    };
+
+    if (!isAllowed) {
+      const categoryLabels = allowedCategories.map(cat => AGE_CATEGORY_LABELS[cat]).join(' y ');
+      Alert.alert(
+        'Aviso de Categoría',
+        `Este partido es para categorías ${categoryLabels}, ¿querés mandar la solicitud de todas formas?`,
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          { text: 'Unirse', onPress: performJoin }
+        ]
+      );
+      return;
     }
+
+    await performJoin();
   };
 
   const formatDate = (date: Date) => {
@@ -215,11 +249,38 @@ export default function MatchDetailScreen() {
           <Text style={styles.title}>{match.title}</Text>
           <View style={styles.typeRow}>
             {match.type === MatchTypeEnum.CHILL ? (
-              <Heart size={16} color={Colors.dark.accent} />
+              <Heart size={16} color="#FFD600" />
+            ) : match.type === MatchTypeEnum.PRO ? (
+              <Zap size={16} color="#FF3D00" />
             ) : (
-              <Swords size={16} color={Colors.dark.error} />
+              <Swords size={16} color="#FF9100" />
             )}
-            <Text style={styles.typeText}>{MATCH_TYPE_LABELS[match.type]}</Text>
+            <Text style={[
+              styles.typeText,
+              match.type === MatchTypeEnum.CHILL && { color: '#FFD600' },
+              match.type === MatchTypeEnum.COMPETITIVE && { color: '#FF9100' },
+              match.type === MatchTypeEnum.PRO && { color: '#FF3D00' },
+            ]}>
+              {MATCH_TYPE_LABELS[match.type]}
+            </Text>
+            <Text style={styles.dividerDot}>•</Text>
+            <View style={[
+              styles.ageBadge,
+              match.ageCategory.includes(AgeCategoryEnum.ELITE) && styles.ageBadgeElite
+            ]}>
+              {match.ageCategory.includes(AgeCategoryEnum.ELITE) && (
+                <Zap size={10} color={Colors.dark.accent} style={{ marginRight: 4 }} />
+              )}
+              <Text style={[
+                styles.ageBadgeText,
+                match.ageCategory.includes(AgeCategoryEnum.ELITE) && { color: Colors.dark.accent }
+              ]}>
+                {match.ageCategory.includes(AgeCategoryEnum.OPEN) || match.ageCategory.length > 3
+                  ? 'Edad: Libre'
+                  : match.ageCategory.map(cat => AGE_CATEGORY_LABELS[cat]).join(' • ')
+                }
+              </Text>
+            </View>
           </View>
         </View>
 
@@ -273,8 +334,16 @@ export default function MatchDetailScreen() {
 
         <View style={styles.technicalRow}>
           <View style={styles.techItem}>
-            <Square size={16} color={Colors.dark.primary} />
-            <Text style={styles.techText}>Sintético</Text>
+            <MaterialCommunityIcons
+              name={
+                match.surface === SurfaceEnum.GRASS ? 'grass' :
+                  match.surface === SurfaceEnum.SYNTHETIC ? 'checkerboard' :
+                    match.surface === SurfaceEnum.DIRT ? 'terrain' : 'domain'
+              }
+              size={18}
+              color={Colors.dark.primary}
+            />
+            <Text style={styles.techText}>{SURFACE_LABELS[match.surface]}</Text>
           </View>
           <View style={styles.techItem}>
             <Shower size={16} color={Colors.dark.info} />
@@ -316,6 +385,7 @@ export default function MatchDetailScreen() {
               key={slot.id}
               slot={slot}
               players={players.filter((p) => slot.filled_by.includes(p.id))}
+              organizerId={match.organizer_id}
             />
           ))}
         </View>
@@ -357,11 +427,19 @@ export default function MatchDetailScreen() {
 interface SlotCardProps {
   slot: MatchSlot;
   players: UserProfile[];
+  organizerId?: string;
 }
 
-function SlotCard({ slot, players }: SlotCardProps) {
+function SlotCard({ slot, players, organizerId }: SlotCardProps) {
   const available = slot.quantity_needed - slot.filled_by.length;
   const positionColor = Colors.positions[slot.role];
+
+  // Ordenar para que el organizador salga primero
+  const sortedPlayers = [...players].sort((a, b) => {
+    if (a.id === organizerId) return -1;
+    if (b.id === organizerId) return 1;
+    return 0;
+  });
 
   return (
     <View style={styles.slotCard}>
@@ -376,16 +454,26 @@ function SlotCard({ slot, players }: SlotCardProps) {
       </View>
 
       <View style={styles.slotPlayers}>
-        {players.map((player) => (
-          <View key={player.id} style={styles.playerChip}>
-            <Image
-              source={{ uri: player.avatar_url }}
-              style={styles.playerAvatar}
-              contentFit="cover"
-            />
-            <Text style={styles.playerName}>{player.nickname}</Text>
-          </View>
-        ))}
+        {sortedPlayers.map((player) => {
+          const isOrganizer = player.id === organizerId;
+          return (
+            <View key={player.id} style={styles.playerChip}>
+              <View style={styles.playerAvatarContainer}>
+                <Image
+                  source={player.avatar_url}
+                  style={styles.playerAvatar}
+                  contentFit="cover"
+                />
+                {isOrganizer && (
+                  <View style={styles.organizerCrown}>
+                    <MaterialCommunityIcons name="crown" size={10} color="#FFD700" />
+                  </View>
+                )}
+              </View>
+              <Text style={styles.playerName}>{player.nickname}</Text>
+            </View>
+          );
+        })}
 
         {Array.from({ length: available }).map((_, i) => (
           <View
@@ -397,7 +485,7 @@ function SlotCard({ slot, players }: SlotCardProps) {
           >
             {slot.role === PositionEnum.GK ? (
               <View style={styles.gkPlaceholder}>
-                <MaterialCommunityIcons name="hand-back-left" size={16} color="#FFD700" />
+                <MaterialCommunityIcons name="hand-back-left" size={16} color="#FFD600" />
                 <Text style={styles.emptySlotTextGK}>Arquero Disponible</Text>
               </View>
             ) : (
@@ -519,8 +607,32 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   typeText: {
-    color: Colors.dark.textSecondary,
     fontSize: 14,
+    fontWeight: '700',
+    marginLeft: 2,
+  },
+  dividerDot: {
+    color: Colors.dark.textMuted,
+    marginHorizontal: 8,
+    fontSize: 16,
+  },
+  ageBadge: {
+    backgroundColor: Colors.dark.surface,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  ageBadgeElite: {
+    borderColor: Colors.dark.accent + '50',
+  },
+  ageBadgeText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: Colors.dark.textSecondary,
   },
   infoCard: {
     backgroundColor: Colors.dark.surface,
@@ -707,6 +819,21 @@ const styles = StyleSheet.create({
     paddingRight: 12,
     gap: 8,
   },
+  playerAvatarContainer: {
+    position: 'relative',
+    width: 32,
+    height: 32,
+  },
+  organizerCrown: {
+    position: 'absolute',
+    top: -6,
+    right: -4,
+    backgroundColor: Colors.dark.surface,
+    borderRadius: 8,
+    padding: 1,
+    borderWidth: 1,
+    borderColor: '#FFD700',
+  },
   playerAvatar: {
     width: 32,
     height: 32,
@@ -727,8 +854,8 @@ const styles = StyleSheet.create({
     borderColor: Colors.dark.border,
   },
   emptySlotGK: {
-    borderColor: '#FFD700',
-    backgroundColor: 'rgba(255, 215, 0, 0.05)',
+    borderColor: '#FFD600',
+    backgroundColor: 'rgba(255, 214, 0, 0.05)',
   },
   gkPlaceholder: {
     flexDirection: 'row',
@@ -740,7 +867,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   emptySlotTextGK: {
-    color: '#FFD700',
+    color: '#FFD600',
     fontSize: 12,
     fontWeight: '700',
   },

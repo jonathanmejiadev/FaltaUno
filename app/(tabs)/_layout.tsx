@@ -1,5 +1,5 @@
 import { Tabs } from 'expo-router';
-import { Map, PlusCircle, User } from 'lucide-react-native';
+import { Map, PlusCircle, User, Calendar } from 'lucide-react-native';
 import React from 'react';
 import Colors from '@/constants/colors';
 
@@ -25,8 +25,15 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Partidos',
+          title: 'Explorar',
           tabBarIcon: ({ color, size }) => <Map size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="matches"
+        options={{
+          title: 'Mis Partidos',
+          tabBarIcon: ({ color, size }) => <Calendar size={size} color={color} />,
         }}
       />
       <Tabs.Screen
