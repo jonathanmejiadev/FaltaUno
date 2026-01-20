@@ -74,7 +74,11 @@ export default function ProfileScreen() {
         <View style={styles.profileCard}>
           <View style={styles.avatarContainer}>
             <Image
-              source={user.avatar_url}
+              source={
+                (typeof user.avatar_url === 'string' && !isNaN(Number(user.avatar_url)))
+                  ? Number(user.avatar_url)
+                  : user.avatar_url
+              }
               style={styles.avatar}
               contentFit="cover"
             />

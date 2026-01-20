@@ -27,24 +27,27 @@ function getMessage(value: number, messages: string[]): string {
   return messages[3];
 }
 
-function getFeedback(value: number): { text: string; color: string } {
-  if (value >= 9) return { text: 'ELITE', color: Colors.dark.primary };
-  if (value >= 7) return { text: 'PRO', color: Colors.dark.accent };
-  if (value >= 5) return { text: 'AMATEUR', color: Colors.dark.info };
-  return { text: 'BASE', color: Colors.dark.textSecondary };
+const RARITY_PALETTE = {
+  ELITE: { color: '#FFD700', bg: 'rgba(255, 215, 0, 0.2)', label: 'ELITE' },
+  PRO: { color: '#A855F7', bg: 'rgba(168, 85, 247, 0.2)', label: 'PRO' },
+  AMATEUR: { color: '#00EAFF', bg: 'rgba(0, 234, 255, 0.2)', label: 'AMATEUR' },
+  BASE: { color: '#E5E4E2', bg: 'rgba(229, 228, 226, 0.2)', label: 'BASE' },
+};
+
+function getRarity(value: number) {
+  if (value >= 9) return RARITY_PALETTE.ELITE;
+  if (value >= 7) return RARITY_PALETTE.PRO;
+  if (value >= 5) return RARITY_PALETTE.AMATEUR;
+  return RARITY_PALETTE.BASE;
 }
 
 export default function StatsRadarComponent({ stats, onStatChange, readonly = false }: StatsRadarProps) {
-  const totalPoints = Object.values(stats).reduce((a, b) => a + b, 0);
-  const avgRating = Math.round(totalPoints / 6);
-
   return (
     <View style={styles.container}>
-      {/* Eliminamos el header interno para usar el de la pantalla de Onboarding */}
-
       {STAT_CONFIG.map((config) => {
         const value = stats[config.key];
         const message = getMessage(value, config.messages);
+        const rarity = getRarity(value);
 
         return (
           <View key={config.key} style={styles.statRow}>
@@ -56,12 +59,16 @@ export default function StatsRadarComponent({ stats, onStatChange, readonly = fa
                 style={styles.statIcon}
               />
               <Text style={styles.statLabel}>{config.label}</Text>
-              <View style={styles.statValueContainer}>
-                <Text style={styles.statValue}>{value}</Text>
+
+              <View style={[styles.statValueContainer, { borderColor: rarity.color + '60' }]}>
+                <Text style={[styles.statValue, { color: rarity.color }]}>{value}</Text>
               </View>
-              <Text style={[styles.feedbackLabel, { color: getFeedback(value).color }]}>
-                {getFeedback(value).text}
-              </Text>
+
+              <View style={[styles.rarityBadge, { backgroundColor: rarity.bg }]}>
+                <Text style={[styles.rarityText, { color: rarity.color }]}>
+                  {rarity.label}
+                </Text>
+              </View>
             </View>
 
             {!readonly ? (
@@ -73,15 +80,15 @@ export default function StatsRadarComponent({ stats, onStatChange, readonly = fa
                   step={1}
                   value={value}
                   onValueChange={(val: number) => onStatChange(config.key, val)}
-                  minimumTrackTintColor={Colors.dark.primary}
+                  minimumTrackTintColor={rarity.color}
                   maximumTrackTintColor={Colors.dark.border}
-                  thumbTintColor={Colors.dark.primary}
+                  thumbTintColor={rarity.color}
                 />
                 <Text style={styles.statMessage}>{message}</Text>
               </View>
             ) : (
               <View style={styles.barContainer}>
-                <View style={[styles.bar, { width: `${value * 10}%` }]} />
+                <View style={[styles.bar, { width: `${value * 10}%`, backgroundColor: rarity.color }]} />
               </View>
             )}
           </View>
@@ -96,32 +103,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     paddingVertical: 10,
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  title: {
-    color: Colors.dark.text,
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  ratingBadge: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: Colors.dark.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ratingText: {
-    color: Colors.dark.background,
-    fontSize: 18,
-    fontWeight: '800',
-  },
   statRow: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   statHeader: {
     flexDirection: 'row',
@@ -129,62 +112,68 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   statIcon: {
-    marginRight: 8,
+    marginRight: 10,
   },
   statLabel: {
     color: Colors.dark.text,
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
     flex: 1,
+    letterSpacing: 0.3,
   },
   statValueContainer: {
-    backgroundColor: Colors.dark.surfaceLight,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    width: 40,
+    height: 32,
     borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.dark.primary + '40',
-    // Efecto de brillo
-    shadowColor: Colors.dark.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 5,
-    elevation: 3,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 10,
   },
   statValue: {
-    color: Colors.dark.primary,
     fontSize: 16,
-    fontWeight: '800',
+    fontWeight: '900',
+  },
+  rarityBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    minWidth: 70,
+    alignItems: 'center',
+  },
+  rarityText: {
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 0.5,
   },
   sliderContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,
   },
   slider: {
     flex: 1,
     height: 40,
   },
   statMessage: {
-    color: Colors.dark.textSecondary,
+    color: Colors.dark.textMuted,
     fontSize: 12,
-    width: 80,
+    width: 75,
     textAlign: 'right',
+    fontStyle: 'italic',
   },
   barContainer: {
-    height: 8,
-    backgroundColor: Colors.dark.border,
-    borderRadius: 4,
+    height: 10,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 5,
     overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
   },
   bar: {
     height: '100%',
-    backgroundColor: Colors.dark.primary,
-    borderRadius: 4,
-  },
-  feedbackLabel: {
-    fontSize: 12,
-    fontWeight: '700',
-    marginLeft: 8,
-    textTransform: 'uppercase',
+    borderRadius: 5,
   },
 });
+

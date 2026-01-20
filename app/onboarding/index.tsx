@@ -147,7 +147,13 @@ export default function OnboardingIdentity() {
                 </Text>
               </TouchableOpacity>
 
-
+              {category && (
+                <View style={styles.categoryBadge}>
+                  <Text style={styles.categoryText}>
+                    Sos Categoría <Text style={styles.categoryHighlight}>{category}</Text>
+                  </Text>
+                </View>
+              )}
             </View>
 
             {Platform.OS === 'ios' ? (

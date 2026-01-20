@@ -105,7 +105,7 @@ export interface Match {
 
 export interface OnboardingData {
   nickname: string;
-  avatar_url: string;
+  avatar_url: any;
   birth_date: Date | null;
   main_position: PositionEnum;
   age_category: AgeCategoryEnum;

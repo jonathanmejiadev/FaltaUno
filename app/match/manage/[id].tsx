@@ -143,7 +143,11 @@ export default function MatchManageScreen() {
                     {match.requests && match.requests.length > 0 ? (
                         match.requests.map((req) => (
                             <View key={req.user.id} style={styles.requestItem}>
-                                <Image source={req.user.avatar_url} style={styles.avatar} />
+                                <Image source={
+                                    (typeof req.user.avatar_url === 'string' && !isNaN(Number(req.user.avatar_url)))
+                                        ? Number(req.user.avatar_url)
+                                        : req.user.avatar_url
+                                } style={styles.avatar} />
                                 <View style={styles.userInfo}>
                                     <Text style={styles.userName}>{req.user.nickname}</Text>
                                     <View style={styles.mediaRow}>
@@ -182,7 +186,11 @@ export default function MatchManageScreen() {
                     {match.waitlist && match.waitlist.length > 0 ? (
                         match.waitlist.map((req) => (
                             <View key={req.user.id} style={styles.waitlistItem}>
-                                <Image source={req.user.avatar_url} style={styles.avatarSmall} />
+                                <Image source={
+                                    (typeof req.user.avatar_url === 'string' && !isNaN(Number(req.user.avatar_url)))
+                                        ? Number(req.user.avatar_url)
+                                        : req.user.avatar_url
+                                } style={styles.avatarSmall} />
                                 <View style={styles.waitlistInfo}>
                                     <Text style={styles.waitlistName}>{req.user.nickname}</Text>
                                     <View style={styles.mediaMiniRow}>
@@ -223,7 +231,11 @@ export default function MatchManageScreen() {
                                     return (
                                         <View key={p.id} style={styles.confirmedPlayer}>
                                             <View style={styles.playerMainInfo}>
-                                                <Image source={p.avatar_url} style={styles.avatarMini} />
+                                                <Image source={
+                                                    (typeof p.avatar_url === 'string' && !isNaN(Number(p.avatar_url)))
+                                                        ? Number(p.avatar_url)
+                                                        : p.avatar_url
+                                                } style={styles.avatarMini} />
                                                 <Text style={styles.confirmedPlayerName}>{p.nickname}</Text>
                                                 {isOrganizer && (
                                                     <View style={styles.organizerBadgeTiny}>

@@ -460,7 +460,11 @@ function SlotCard({ slot, players, organizerId }: SlotCardProps) {
             <View key={player.id} style={styles.playerChip}>
               <View style={styles.playerAvatarContainer}>
                 <Image
-                  source={player.avatar_url}
+                  source={
+                    (typeof player.avatar_url === 'string' && !isNaN(Number(player.avatar_url)))
+                      ? Number(player.avatar_url)
+                      : player.avatar_url
+                  }
                   style={styles.playerAvatar}
                   contentFit="cover"
                 />
