@@ -1,74 +1,70 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { View, Text, StyleSheet, Dimensions } from 'react-native';
-import { MotiView } from 'moti';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { MotiView } from 'moti';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
-    withRepeat,
-    withTiming,
-    Easing,
     withSpring,
+    withTiming,
+    withRepeat,
+    Easing,
     interpolate,
-    Extrapolate
+    Extrapolate,
 } from 'react-native-reanimated';
-import { GestureDetector, Gesture } from 'react-native-gesture-handler';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import Colors from '@/constants/colors';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { StatsRadar } from '@/types';
+import Colors from '@/constants/colors';
+import Svg, { Path, Polygon, Line, Circle, Rect } from 'react-native-svg';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH * 0.88;
-const ASPECT_RATIO = 1 / 1.5; // Taller ratio for more content
+const ASPECT_RATIO = 1 / 1.35;
 const CARD_HEIGHT = CARD_WIDTH / ASPECT_RATIO;
 
 interface PlayerCardProps {
     nickname: string;
-    avatar?: any;
+    avatar?: string | number | any;
     stats: StatsRadar;
     mainPosition: string;
     specificRole?: string;
     overall: number;
 }
 
-const STAT_LABELS: Record<keyof StatsRadar, string> = {
-    pace: 'RIT',
-    shooting: 'TIR',
-    passing: 'PAS',
-    defense: 'DEF',
-    physical: 'FIS',
-    stamina: 'AGU',
-};
-
 const RARITY = {
     ELITE: {
         color: '#FFD700',
+        borderOuter: '#00D9FF',
+        borderInner: '#A855F7',
         label: 'NIVEL SELECCIÓN',
         glow: '#FFD700',
-        titulo: '¡NIVEL SELECCIÓN!',
-        sub: 'Un distinto.'
+        message: '¡Un distinto! Nivel selección.'
     },
     PRO: {
         color: '#A855F7',
+        borderOuter: '#00D9FF',
+        borderInner: '#A855F7',
         label: 'JUGADOR DE PRIMERA',
         glow: '#A855F7',
-        titulo: 'JUGADOR DE PRIMERA',
-        sub: 'Marcás la diferencia.'
+        message: 'Marcás la diferencia en la cancha.'
     },
     AMATEUR: {
         color: '#00EAFF',
+        borderOuter: '#00D9FF',
+        borderInner: '#A855F7',
         label: 'CRACK DE BARRIO',
         glow: '#00EAFF',
-        titulo: 'CRACK DE BARRIO',
-        sub: 'Nunca decepciona.'
+        message: 'El que nunca te deja a gamba.'
     },
     BASE: {
         color: '#E5E4E2',
+        borderOuter: '#00D9FF',
+        borderInner: '#A855F7',
         label: 'PROMESA',
         glow: '#E5E4E2',
-        titulo: 'PROMESA',
-        sub: '¡A meterle garra!'
+        message: '¡A meterle garra y crecer!'
     },
 };
 
@@ -77,6 +73,15 @@ const getRarity = (overall: number) => {
     if (overall >= 7.5) return RARITY.PRO;
     if (overall >= 6.0) return RARITY.AMATEUR;
     return RARITY.BASE;
+};
+
+const STAT_LABELS: Record<keyof StatsRadar, string> = {
+    pace: 'RIT',
+    shooting: 'TIR',
+    passing: 'PAS',
+    defense: 'DEF',
+    physical: 'FÍS',
+    stamina: 'RES',
 };
 
 export default function PlayerCard({
@@ -103,7 +108,7 @@ export default function PlayerCard({
             false
         );
         pulse.value = withRepeat(
-            withTiming(1.15, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
+            withTiming(1.08, { duration: 1500, easing: Easing.inOut(Easing.ease) }),
             -1,
             true
         );
@@ -114,9 +119,8 @@ export default function PlayerCard({
             scale.value = withSpring(1.05);
         })
         .onUpdate((event) => {
-            // Limit tilt to ~15 degrees
-            rotateY.value = interpolate(event.translationX, [-CARD_WIDTH / 2, CARD_WIDTH / 2], [15, -15], Extrapolate.CLAMP);
-            rotateX.value = interpolate(event.translationY, [-CARD_HEIGHT / 2, CARD_HEIGHT / 2], [-15, 15], Extrapolate.CLAMP);
+            rotateY.value = interpolate(event.translationX, [-CARD_WIDTH / 2, CARD_WIDTH / 2], [12, -12], Extrapolate.CLAMP);
+            rotateX.value = interpolate(event.translationY, [-CARD_HEIGHT / 2, CARD_HEIGHT / 2], [-12, 12], Extrapolate.CLAMP);
         })
         .onEnd(() => {
             rotateX.value = withSpring(0);
@@ -147,122 +151,117 @@ export default function PlayerCard({
         <View style={styles.container}>
             <GestureDetector gesture={gesture}>
                 <Animated.View style={[styles.cardWrapper, cardAnimatedStyle]}>
-                    <View style={[styles.cardMain, {
-                        borderColor: rarity.color,
-                        shadowColor: rarity.glow,
-                    }]}>
-                        <LinearGradient
-                            colors={['#1a1a24', '#0d0d12', '#050508']}
-                            style={styles.cardGradient}
-                        >
-                            {/* Brushed Metal Texture Overlay */}
-                            <View style={styles.metalTexture} />
+                    {/* Shield-shaped card with double border */}
+                    <View style={styles.shieldContainer}>
+                        {/* Outer border (Cyan) */}
+                        <View style={[styles.borderOuter, { borderColor: rarity.borderOuter, shadowColor: rarity.borderOuter }]}>
+                            {/* Inner border (Violet) */}
+                            <View style={[styles.borderInner, { borderColor: rarity.borderInner }]}>
+                                <LinearGradient
+                                    colors={['#0a1628', '#16213e', '#0f1a2e']}
+                                    style={styles.cardGradient}
+                                >
+                                    {/* Football Field Background */}
+                                    <Svg style={styles.fieldSvg} viewBox="0 0 300 400">
+                                        {/* Champions League Star */}
+                                        <Polygon
+                                            points="150,80 165,120 210,120 175,145 190,185 150,160 110,185 125,145 90,120 135,120"
+                                            fill="rgba(0, 217, 255, 0.15)"
+                                            stroke="rgba(0, 217, 255, 0.3)"
+                                            strokeWidth="2"
+                                        />
 
-                            {/* Glossy Effect */}
-                            <Animated.View style={[styles.glossyOverlay, shineStyle]} />
+                                        {/* Field lines */}
+                                        <Line x1="50" y1="200" x2="250" y2="200" stroke="rgba(0, 217, 255, 0.2)" strokeWidth="2" />
+                                        <Line x1="50" y1="280" x2="250" y2="280" stroke="rgba(0, 217, 255, 0.2)" strokeWidth="2" />
+                                        <Line x1="50" y1="320" x2="250" y2="320" stroke="rgba(0, 217, 255, 0.2)" strokeWidth="2" />
 
-                            {/* Card Content */}
-                            <View style={styles.contentContainer}>
-                                <View style={styles.topInfo}>
-                                    <View style={styles.overallBox}>
-                                        <Animated.Text style={[styles.overallValue, overallPulseStyle, {
-                                            color: rarity.color,
-                                            textShadowColor: rarity.glow,
-                                            textShadowOffset: { width: 0, height: 0 },
-                                            textShadowRadius: 20,
-                                        }]}>
-                                            {overall.toFixed(1)}
-                                        </Animated.Text>
-                                        <Text style={styles.overallLabel}>MEDIA</Text>
-                                    </View>
+                                        {/* Center circle */}
+                                        <Circle cx="150" cy="200" r="40" fill="none" stroke="rgba(0, 217, 255, 0.2)" strokeWidth="2" />
 
-                                    <View style={styles.positionBadge}>
-                                        <Text style={styles.positionText}>{mainPosition}</Text>
-                                    </View>
-                                </View>
+                                        {/* Goal area */}
+                                        <Rect x="120" y="310" width="60" height="20" fill="none" stroke="rgba(0, 217, 255, 0.2)" strokeWidth="2" />
 
-                                {/* AVATAR - HERALDIC SHIELD WITH NEON BORDER */}
-                                <View style={styles.avatarContainer}>
-                                    <View style={[styles.heraldShield, {
-                                        borderColor: rarity.color,
-                                        shadowColor: rarity.glow,
-                                    }]}>
-                                        <View style={styles.shieldInner}>
-                                            {avatar ? (
-                                                <Image
-                                                    source={
-                                                        (typeof avatar === 'string' && !isNaN(Number(avatar)))
-                                                            ? Number(avatar)
-                                                            : (typeof avatar === 'string' ? { uri: avatar } : avatar)
-                                                    }
-                                                    style={styles.playerAvatar}
-                                                    contentFit="cover"
-                                                />
-                                            ) : (
-                                                <View style={styles.avatarPlaceholder}>
-                                                    <MaterialCommunityIcons name="account" size={70} color="#555" />
+                                        {/* Diagonal lines for depth */}
+                                        <Line x1="0" y1="150" x2="100" y2="250" stroke="rgba(0, 217, 255, 0.1)" strokeWidth="1" />
+                                        <Line x1="300" y1="150" x2="200" y2="250" stroke="rgba(0, 217, 255, 0.1)" strokeWidth="1" />
+                                    </Svg>
+
+                                    {/* Glossy Effect */}
+                                    <Animated.View style={[styles.glossyOverlay, shineStyle]} />
+
+                                    {/* Card Content */}
+                                    <View style={styles.contentContainer}>
+                                        {/* Top Left: Overall + Position */}
+                                        <View style={styles.topLeftCorner}>
+                                            <Animated.Text style={[styles.overallLarge, overallPulseStyle, {
+                                                color: '#fff',
+                                                textShadowColor: rarity.glow,
+                                                textShadowOffset: { width: 0, height: 0 },
+                                                textShadowRadius: 25,
+                                            }]}>
+                                                {Math.round(overall * 10)}
+                                            </Animated.Text>
+                                            <Text style={styles.positionSmall}>{mainPosition}</Text>
+                                        </View>
+
+                                        {/* Center: Avatar (optional - can be removed for cleaner look) */}
+                                        <View style={styles.avatarSection}>
+                                            {avatar && (
+                                                <View style={styles.avatarFrame}>
+                                                    <Image
+                                                        source={
+                                                            (typeof avatar === 'string' && !isNaN(Number(avatar)))
+                                                                ? Number(avatar)
+                                                                : (typeof avatar === 'string' ? { uri: avatar } : avatar)
+                                                        }
+                                                        style={styles.avatarImage}
+                                                        contentFit="cover"
+                                                    />
                                                 </View>
                                             )}
                                         </View>
-                                    </View>
-                                </View>
 
-                                <View style={styles.playerInfo}>
-                                    <Text style={styles.nickname} numberOfLines={1}>{nickname}</Text>
-                                    <Text style={styles.roleText}>{specificRole?.toUpperCase() || 'JUGADOR'}</Text>
+                                        {/* Player Name */}
+                                        <Text style={styles.playerName} numberOfLines={1}>{nickname}</Text>
 
-                                    {/* PERSONALITY BADGE - GOLDEN IMPACT */}
-                                    <View style={styles.personalityBadge}>
-                                        <LinearGradient
-                                            colors={overall >= 9.0 ? ['#FFD700', '#FFA500'] : [rarity.color, `${rarity.color}CC`, `${rarity.color}99`]}
-                                            style={styles.ribbonGradient}
-                                            start={{ x: 0, y: 0 }}
-                                            end={{ x: 1, y: 1 }}
-                                        >
-                                            <View style={styles.ribbonContent}>
-                                                <Text style={styles.tituloText}>{rarity.titulo}</Text>
-                                                <Text style={styles.subText}>{rarity.sub}</Text>
-                                            </View>
-                                        </LinearGradient>
-                                        {/* Ribbon corners */}
-                                        <View style={[styles.ribbonCorner, styles.ribbonCornerLeft, { borderRightColor: overall >= 9.0 ? '#FFD700' : rarity.color }]} />
-                                        <View style={[styles.ribbonCorner, styles.ribbonCornerRight, { borderLeftColor: overall >= 9.0 ? '#FFD700' : rarity.color }]} />
-                                    </View>
-                                </View>
+                                        {/* Dynamic Description */}
+                                        <Text style={styles.dynamicMessage} numberOfLines={2}>
+                                            {rarity.message}
+                                        </Text>
 
-                                <View style={styles.statsGrid}>
-                                    {statsEntries.map(([key, value]) => (
-                                        <View key={key} style={styles.statBox}>
-                                            <Text style={styles.statLabelText}>{STAT_LABELS[key]}</Text>
-                                            <View style={styles.statLine}>
-                                                <View style={styles.statBarBg}>
+                                        {/* Stats Row - Single Line (6 stats) */}
+                                        <View style={styles.statsRow}>
+                                            {statsEntries.map(([key, value], index) => {
+                                                const statColor = value >= 8 ? rarity.color : '#fff';
+                                                return (
                                                     <MotiView
-                                                        from={{ width: 0 }}
-                                                        animate={{ width: `${value * 10}%` }}
-                                                        transition={{ type: 'timing', duration: 1500, delay: 500 }}
-                                                        style={[styles.statBarFill, { backgroundColor: getRarity(value).color }]}
-                                                    />
-                                                </View>
-                                                <Text style={[styles.statValueText, { color: getRarity(value).color }]}>{value}</Text>
-                                            </View>
+                                                        key={key}
+                                                        from={{ opacity: 0, translateY: 20 }}
+                                                        animate={{ opacity: 1, translateY: 0 }}
+                                                        transition={{ delay: 400 + (index * 80), type: 'spring' }}
+                                                        style={styles.statColumn}
+                                                    >
+                                                        <Text style={styles.statLabel}>
+                                                            {STAT_LABELS[key]}
+                                                        </Text>
+                                                        <Text style={[styles.statValue, { color: statColor }]}>
+                                                            {Math.round(value * 10)}
+                                                        </Text>
+                                                    </MotiView>
+                                                );
+                                            })}
                                         </View>
-                                    ))}
-                                </View>
 
-                                {/* Metallic Seal */}
-                                <View style={styles.sealArea}>
-                                    <LinearGradient
-                                        colors={['#d1d5db', '#9ca3af', '#4b5563']}
-                                        style={styles.metallicSeal}
-                                        start={{ x: 0, y: 0 }}
-                                        end={{ x: 1, y: 1 }}
-                                    >
-                                        <MaterialCommunityIcons name="seal-variant" size={14} color="#1a1a24" />
-                                        <Text style={styles.sealText}>{rarity.label}</Text>
-                                    </LinearGradient>
-                                </View>
+                                        {/* Bottom: FUT CARDS Logo */}
+                                        <View style={styles.logoSection}>
+                                            <Text style={styles.logoText}>FALTA UNO</Text>
+                                            <Text style={styles.logoSubtext}>CARDS</Text>
+                                        </View>
+                                    </View>
+                                </LinearGradient>
                             </View>
-                        </LinearGradient>
+                        </View>
                     </View>
                 </Animated.View>
             </GestureDetector>
@@ -282,274 +281,142 @@ const styles = StyleSheet.create({
         width: CARD_WIDTH,
         height: CARD_HEIGHT,
     },
-    cardMain: {
+    shieldContainer: {
         flex: 1,
-        borderRadius: 0, // Remove for shield shape
+    },
+    borderOuter: {
+        flex: 1,
+        borderWidth: 5,
+        borderRadius: 28,
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.8,
+        shadowRadius: 20,
+        elevation: 20,
+        padding: 3,
+    },
+    borderInner: {
+        flex: 1,
+        borderWidth: 4,
+        borderRadius: 24,
         overflow: 'hidden',
-        borderWidth: 3, // Thicker border
-        borderColor: 'transparent', // Will be set dynamically
-        // Shield shape using clip-path simulation
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
-        borderBottomLeftRadius: 0,
-        borderBottomRightRadius: 0,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 25 },
-        shadowOpacity: 0.9,
-        shadowRadius: 35,
-        elevation: 25,
     },
     cardGradient: {
         flex: 1,
-        // Carbon fiber texture simulation
-        backgroundColor: '#0a0a0f',
     },
-    metalTexture: {
-        ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'transparent',
-        opacity: 0.03,
-        // Simulated brushed metal with repeating pattern
-        borderWidth: 0.5,
-        borderColor: 'rgba(255,255,255,0.02)',
+    fieldSvg: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        opacity: 1,
     },
     glossyOverlay: {
         position: 'absolute',
-        width: CARD_WIDTH * 0.4,
-        height: '250%',
-        backgroundColor: 'rgba(255, 255, 255, 0.08)',
-        top: '-75%',
-        left: 0,
-        zIndex: 5,
+        width: CARD_WIDTH * 0.5,
+        height: CARD_HEIGHT * 2.5,
+        backgroundColor: 'rgba(255,255,255,0.08)',
+        top: -CARD_HEIGHT * 0.5,
     },
     contentContainer: {
         flex: 1,
-        padding: 24,
+        padding: 20,
+        paddingTop: 25,
+        paddingBottom: 15,
+    },
+    topLeftCorner: {
+        position: 'absolute',
+        top: 20,
+        left: 20,
+        alignItems: 'center',
         zIndex: 10,
-        justifyContent: 'space-between',
     },
-    avatarContainer: {
-        width: '100%',
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginVertical: 8, // Reduced spacing
-        marginTop: -5,
-    },
-    heraldShield: {
-        width: 140, // Smaller for more space
-        height: 150,
-        position: 'relative',
-        borderWidth: 3,
-        borderRadius: 12,
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.8,
-        shadowRadius: 15,
-        elevation: 12,
-    },
-    shieldInner: {
-        width: '100%',
-        height: '100%',
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        // Heraldic shield shape
-        borderTopLeftRadius: 10,
-        borderTopRightRadius: 10,
-        borderBottomLeftRadius: 80,
-        borderBottomRightRadius: 80,
-        overflow: 'hidden', // Perfect framing
-    },
-    playerAvatar: {
-        width: '100%',
-        height: '100%',
-    },
-    avatarPlaceholder: {
-        width: '100%',
-        height: '100%',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'rgba(255,255,255,0.05)',
-    },
-    topInfo: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
-    },
-    overallBox: {
-        alignItems: 'center',
-    },
-    overallValue: {
-        fontSize: 56,
+    overallLarge: {
+        fontSize: 68,
         fontWeight: '900',
+        lineHeight: 68,
     },
-    overallLabel: {
-        color: Colors.dark.textSecondary,
-        fontSize: 10,
-        fontWeight: '800',
-        letterSpacing: 2,
-        marginTop: -4,
-    },
-    positionBadge: {
-        backgroundColor: 'rgba(255,255,255,0.1)',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.2)',
-    },
-    positionText: {
+    positionSmall: {
+        fontSize: 16,
+        fontWeight: '900',
         color: '#fff',
-        fontSize: 14,
+        marginTop: 2,
+        letterSpacing: 1.5,
+    },
+    avatarSection: {
+        alignItems: 'center',
+        marginTop: 100,
+        marginBottom: 10,
+        height: 80,
+    },
+    avatarFrame: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        overflow: 'hidden',
+        borderWidth: 2,
+        borderColor: 'rgba(255,255,255,0.3)',
+    },
+    avatarImage: {
+        width: '100%',
+        height: '100%',
+    },
+    playerName: {
+        fontSize: 36,
         fontWeight: '900',
-    },
-    playerInfo: {
-        marginTop: 4, // Tighter spacing
-        marginBottom: 8,
-    },
-    nickname: {
         color: '#fff',
-        fontSize: 32, // Slightly smaller
-        fontWeight: '900',
-        textTransform: 'uppercase',
-        textShadowColor: 'rgba(0,0,0,0.8)',
-        textShadowOffset: { width: 2, height: 2 },
-        textShadowRadius: 4,
         textAlign: 'center',
+        textTransform: 'uppercase',
+        textShadowColor: 'rgba(0,0,0,0.9)',
+        textShadowOffset: { width: 0, height: 3 },
+        textShadowRadius: 6,
+        marginBottom: 8,
+        letterSpacing: 2,
+    },
+    dynamicMessage: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: 'rgba(255,255,255,0.85)',
+        textAlign: 'center',
+        marginBottom: 20,
+        paddingHorizontal: 20,
+        fontStyle: 'italic',
+    },
+    statsRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        paddingHorizontal: 10,
+        marginBottom: 15,
+    },
+    statColumn: {
+        alignItems: 'center',
+    },
+    statLabel: {
+        fontSize: 11,
+        fontWeight: '900',
+        color: '#fff',
+        marginBottom: 4,
         letterSpacing: 0.5,
     },
-    roleText: {
-        color: Colors.dark.primary,
+    statValue: {
+        fontSize: 28,
+        fontWeight: '900',
+        textShadowColor: 'rgba(0,0,0,0.9)',
+        textShadowOffset: { width: 0, height: 2 },
+        textShadowRadius: 5,
+    },
+    logoSection: {
+        alignItems: 'center',
+        marginTop: 'auto',
+    },
+    logoText: {
+        fontSize: 16,
+        fontWeight: '900',
+        color: '#fff',
+        letterSpacing: 4,
+    },
+    logoSubtext: {
         fontSize: 12,
         fontWeight: '700',
+        color: 'rgba(255,255,255,0.7)',
         letterSpacing: 2,
-        marginTop: 1,
-        textAlign: 'center',
-    },
-    personalityBadge: {
-        marginTop: 10, // Reduced
-        width: '100%',
-        alignItems: 'center',
-        position: 'relative',
-    },
-    ribbonGradient: {
-        paddingHorizontal: 18,
-        paddingVertical: 8, // Reduced
-        minWidth: '85%',
-        borderRadius: 4,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.5,
-        shadowRadius: 8,
-        elevation: 8,
-    },
-    ribbonContent: {
-        alignItems: 'center',
-    },
-    tituloText: {
-        fontSize: 13, // Slightly smaller
-        fontWeight: '900',
-        textAlign: 'center',
-        letterSpacing: 1.2,
-        textTransform: 'uppercase',
-        color: '#fff', // White for better contrast
-        textShadowColor: 'rgba(0,0,0,0.8)',
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 3,
-    },
-    subText: {
-        fontSize: 9, // Smaller
-        fontWeight: '700',
-        textAlign: 'center',
-        color: '#fff', // White for better contrast
-        marginTop: 1,
-        opacity: 0.9,
-    },
-    ribbonCorner: {
-        position: 'absolute',
-        width: 0,
-        height: 0,
-        backgroundColor: 'transparent',
-        borderStyle: 'solid',
-    },
-    ribbonCornerLeft: {
-        left: 0,
-        bottom: -8,
-        borderTopWidth: 8,
-        borderRightWidth: 12,
-        borderBottomWidth: 0,
-        borderLeftWidth: 0,
-        borderTopColor: 'transparent',
-        borderBottomColor: 'transparent',
-        borderLeftColor: 'transparent',
-    },
-    ribbonCornerRight: {
-        right: 0,
-        bottom: -8,
-        borderTopWidth: 8,
-        borderRightWidth: 0,
-        borderBottomWidth: 0,
-        borderLeftWidth: 12,
-        borderTopColor: 'transparent',
-        borderBottomColor: 'transparent',
-        borderRightColor: 'transparent',
-    },
-    statsGrid: {
-        marginTop: 4, // Reduced
-        gap: 5, // Tighter
-    },
-    statBox: {
-        width: '100%',
-    },
-    statLabelText: {
-        color: '#888',
-        fontSize: 8, // Smaller
-        fontWeight: '900',
-        marginBottom: 2,
-        textTransform: 'uppercase',
-    },
-    statLine: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8, // Reduced
-    },
-    statBarBg: {
-        flex: 1,
-        height: 5, // Thinner
-        backgroundColor: 'rgba(255,255,255,0.05)',
-        borderRadius: 3,
-        overflow: 'hidden',
-    },
-    statBarFill: {
-        height: '100%',
-        borderRadius: 3,
-    },
-    statValueText: {
-        fontSize: 14, // Slightly smaller
-        fontWeight: '900',
-        width: 22,
-        textAlign: 'right',
-        textShadowColor: 'rgba(0,0,0,0.8)',
-        textShadowOffset: { width: 1, height: 2 },
-        textShadowRadius: 3,
-    },
-    sealArea: {
-        alignItems: 'center',
-        marginTop: 12,
-    },
-    metallicSeal: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-        paddingHorizontal: 14,
-        paddingVertical: 6,
-        borderRadius: 16,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-    },
-    sealText: {
-        color: '#1a1a24',
-        fontSize: 10,
-        fontWeight: '900',
-        textTransform: 'uppercase',
-        letterSpacing: 0.8,
     },
 });
