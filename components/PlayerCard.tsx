@@ -1,28 +1,26 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, Image, Dimensions } from 'react-native';
 import { MotiView } from 'moti';
 import { LinearGradient } from 'expo-linear-gradient';
-import {
-    Gesture,
-    GestureDetector,
-    GestureHandlerRootView
-} from 'react-native-gesture-handler';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
-    withSpring,
-    interpolate,
-    Easing
+    withRepeat,
+    withTiming,
+    Easing,
+    interpolate
 } from 'react-native-reanimated';
 import Colors from '@/constants/colors';
 import { StatsRadar } from '@/types';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width * 0.85;
+const ASPECT_RATIO = 2 / 2.8; // Compact aspect ratio
+const CARD_HEIGHT = CARD_WIDTH / ASPECT_RATIO;
 
 interface PlayerCardProps {
     nickname: string;
-    avatar?: string;
+    avatar?: any;
     stats: StatsRadar;
     mainPosition: string;
     specificRole?: string;
@@ -39,10 +37,10 @@ const STAT_LABELS: Record<keyof StatsRadar, string> = {
 };
 
 const getPersonalityMessage = (overall: number) => {
-    if (overall >= 9.0) return "¡Nivel Selección! Un distinto.";
-    if (overall >= 7.0) return "Jugador de Primera. Marcás la diferencia.";
-    if (overall >= 5.0) return "Crack de Barrio. Siempre cumple.";
-    return "Promesa. ¡A meterle garra!";
+    if (overall >= 9.0) return "¡NIVEL SELECCIÓN!";
+    if (overall >= 7.0) return "JUGADOR DE PRIMERA";
+    if (overall >= 5.0) return "CRACK DE BARRIO";
+    return "PROMESA";
 };
 
 export default function PlayerCard({
@@ -53,285 +51,288 @@ export default function PlayerCard({
     specificRole,
     overall
 }: PlayerCardProps) {
-    const rotateX = useSharedValue(0);
-    const rotateY = useSharedValue(0);
+    const shineX = useSharedValue(-CARD_WIDTH * 1.5);
 
-    const gesture = Gesture.Pan()
-        .onUpdate((event) => {
-            // Limit the tilt to about 15 degrees
-            rotateX.value = interpolate(event.y, [0, 400], [15, -15]);
-            rotateY.value = interpolate(event.x, [0, CARD_WIDTH], [-15, 15]);
-        })
-        .onEnd(() => {
-            rotateX.value = withSpring(0);
-            rotateY.value = withSpring(0);
-        });
+    useEffect(() => {
+        shineX.value = withRepeat(
+            withTiming(CARD_WIDTH * 1.5, { duration: 3000, easing: Easing.bezier(0.4, 0, 0.2, 1) }),
+            -1,
+            false
+        );
+    }, []);
 
-    const animatedStyle = useAnimatedStyle(() => {
-        return {
-            transform: [
-                { perspective: 1000 },
-                { rotateX: `${rotateX.value}deg` },
-                { rotateY: `${rotateY.value}deg` },
-            ],
-        };
-    });
+    const shineStyle = useAnimatedStyle(() => ({
+        transform: [{ translateX: shineX.value }, { skewX: '-20deg' }],
+    }));
 
-    const shineStyle = useAnimatedStyle(() => {
-        return {
-            opacity: interpolate(
-                Math.abs(rotateX.value) + Math.abs(rotateY.value),
-                [0, 20],
-                [0, 0.3]
-            ),
-            transform: [
-                { translateX: rotateY.value * 10 },
-                { translateY: rotateX.value * 10 },
-            ],
-        };
-    });
+    const statsEntries = Object.entries(stats) as [keyof StatsRadar, number][];
+    const leftStats = statsEntries.slice(0, 3);
+    const rightStats = statsEntries.slice(3, 6);
 
     return (
-        <View style={styles.container}>
-            <GestureDetector gesture={gesture}>
-                <Animated.View style={[styles.cardContainer, animatedStyle]}>
-                    <MotiView
-                        from={{ scale: 0.7, opacity: 0 }}
-                        animate={{ scale: 1, opacity: 1 }}
-                        transition={{
-                            type: 'spring',
-                            damping: 12,
-                            stiffness: 90,
-                        }}
-                        style={styles.motiWrapper}
-                    >
-                        <LinearGradient
-                            colors={[Colors.dark.surface, Colors.dark.background, '#1a1a1f']}
-                            style={styles.gradient}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
-                        >
-                            {/* Neon Border */}
-                            <View style={styles.neonBorder} />
+        <View style={styles.outerContainer}>
+            <Text style={styles.confirmTitle}>¡FICHAJE CONFIRMADO!</Text>
 
-                            {/* Shine effect */}
-                            <Animated.View style={[styles.shine, shineStyle]}>
-                                <LinearGradient
-                                    colors={['transparent', 'rgba(255,255,255,0.2)', 'transparent']}
-                                    style={StyleSheet.absoluteFill}
-                                    start={{ x: 0, y: 0 }}
-                                    end={{ x: 1, y: 1 }}
-                                />
-                            </Animated.View>
+            <MotiView
+                from={{ opacity: 0, scale: 0.9, rotateY: '15deg' }}
+                animate={{ opacity: 1, scale: 1, rotateY: '0deg' }}
+                transition={{ type: 'spring', damping: 15 }}
+                style={styles.cardContainer}
+            >
+                <LinearGradient
+                    colors={['#1a1a24', '#0d0d12']}
+                    style={styles.innerCard}
+                >
+                    {/* Shine effect ray */}
+                    <Animated.View style={[styles.shineRay, shineStyle]} />
 
-                            <View style={styles.cardHeader}>
-                                <View style={styles.overallContainer}>
-                                    <Text style={styles.overallText}>{overall.toFixed(1)}</Text>
-                                    <Text style={styles.overallLabel}>MEDIA</Text>
-                                </View>
+                    <View style={styles.cardHeader}>
+                        <View style={styles.overallContainer}>
+                            <Text style={styles.overallText}>{overall.toFixed(1)}</Text>
+                            <Text style={styles.overallLabel}>MEDIA</Text>
+                        </View>
 
-                                <View style={styles.avatarWrapper}>
-                                    {avatar ? (
-                                        <Image source={{ uri: avatar }} style={styles.avatar} />
-                                    ) : (
-                                        <View style={[styles.avatar, styles.avatarPlaceholder]}>
-                                            <Text style={styles.avatarInitial}>{nickname?.[0]?.toUpperCase() || 'P'}</Text>
-                                        </View>
-                                    )}
-                                </View>
+                        <View style={styles.avatarWrapper}>
+                            <LinearGradient
+                                colors={['#6366f1', '#a855f7']}
+                                style={styles.avatarBorder}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 1 }}
+                            />
+                            <View style={styles.avatarInner}>
+                                {avatar ? (
+                                    <Image source={typeof avatar === 'string' ? { uri: avatar } : avatar} style={styles.avatar} />
+                                ) : (
+                                    <View style={styles.avatarPlaceholder} />
+                                )}
                             </View>
+                        </View>
+                    </View>
 
-                            <View style={styles.cardBody}>
-                                <Text style={styles.nickname} numberOfLines={1}>{nickname}</Text>
-                                <Text style={styles.position}>
-                                    {mainPosition} {specificRole ? `• ${specificRole}` : ''}
-                                </Text>
-                                <Text style={styles.personality}>{getPersonalityMessage(overall)}</Text>
-                            </View>
+                    <View style={styles.cardBody}>
+                        <Text style={styles.nickname} numberOfLines={1}>{nickname}</Text>
+                        <Text style={styles.position}>
+                            {mainPosition} {specificRole ? `• ${specificRole}` : ''}
+                        </Text>
 
-                            <View style={styles.statsContainer}>
-                                {(Object.entries(stats) as [keyof StatsRadar, number][]).map(([key, value]) => (
-                                    <View key={key} style={styles.statRow}>
-                                        <Text style={styles.statLabel}>{STAT_LABELS[key]}</Text>
-                                        <View style={styles.barBackground}>
-                                            <MotiView
-                                                from={{ width: '0%' }}
-                                                animate={{ width: `${value * 10}%` }}
-                                                transition={{
-                                                    type: 'timing',
-                                                    duration: 1000,
-                                                    easing: Easing.out(Easing.quad),
-                                                }}
-                                                style={[styles.barFill, { backgroundColor: Colors.dark.primary }]}
-                                            />
-                                        </View>
-                                        <Text style={styles.statValue}>{value}</Text>
+                        <View style={styles.stickerContainer}>
+                            <LinearGradient
+                                colors={['#FFD700', '#FFA500']}
+                                style={styles.stickerBackground}
+                            />
+                            <Text style={styles.stickerText}>{getPersonalityMessage(overall)}</Text>
+                        </View>
+                    </View>
+
+                    <View style={styles.statsLayout}>
+                        <View style={styles.statsColumn}>
+                            {leftStats.map(([key, value]) => (
+                                <View key={key} style={styles.statItem}>
+                                    <Text style={styles.statLabel}>{STAT_LABELS[key]}</Text>
+                                    <View style={styles.miniBarContainer}>
+                                        <MotiView
+                                            from={{ width: 0 }}
+                                            animate={{ width: `${value * 10}%` }}
+                                            transition={{ type: 'timing', duration: 1000 }}
+                                            style={[styles.miniBarFill, { backgroundColor: Colors.dark.primary }]}
+                                        />
                                     </View>
-                                ))}
-                            </View>
-                        </LinearGradient>
-                    </MotiView>
-                </Animated.View>
-            </GestureDetector>
+                                    <Text style={styles.statValue}>{value}</Text>
+                                </View>
+                            ))}
+                        </View>
+                        <View style={styles.statsColumn}>
+                            {rightStats.map(([key, value]) => (
+                                <View key={key} style={styles.statItem}>
+                                    <Text style={styles.statLabel}>{STAT_LABELS[key]}</Text>
+                                    <View style={styles.miniBarContainer}>
+                                        <MotiView
+                                            from={{ width: 0 }}
+                                            animate={{ width: `${value * 10}%` }}
+                                            transition={{ type: 'timing', duration: 1000 }}
+                                            style={[styles.miniBarFill, { backgroundColor: '#a855f7' }]}
+                                        />
+                                    </View>
+                                    <Text style={styles.statValue}>{value}</Text>
+                                </View>
+                            ))}
+                        </View>
+                    </View>
+                </LinearGradient>
+            </MotiView>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
+    outerContainer: {
         alignItems: 'center',
-        justifyContent: 'center',
-        marginVertical: 10,
+        width: '100%',
+    },
+    confirmTitle: {
+        fontSize: 24,
+        fontWeight: '900',
+        color: Colors.dark.primary,
+        fontStyle: 'italic',
+        letterSpacing: 1,
+        marginBottom: 15,
+        textShadowColor: Colors.dark.primary + '80',
+        textShadowOffset: { width: 0, height: 0 },
+        textShadowRadius: 15,
+        textAlign: 'center',
     },
     cardContainer: {
         width: CARD_WIDTH,
-        height: CARD_WIDTH * 1.4,
-        borderRadius: 20,
-        backgroundColor: Colors.dark.surface,
-        // Shadow for depth
+        height: CARD_HEIGHT,
+        borderRadius: 24,
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 10 },
-        shadowOpacity: 0.5,
-        shadowRadius: 15,
-        elevation: 20,
-    },
-    motiWrapper: {
-        flex: 1,
-    },
-    gradient: {
-        flex: 1,
-        padding: 24,
-        borderRadius: 20,
-        justifyContent: 'space-between',
+        shadowOffset: { width: 0, height: 15 },
+        shadowOpacity: 0.6,
+        shadowRadius: 20,
+        elevation: 25,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
         overflow: 'hidden',
     },
-    neonBorder: {
-        ...StyleSheet.absoluteFillObject,
-        borderRadius: 20,
-        borderWidth: 2,
-        borderColor: Colors.dark.primary,
-        opacity: 0.4,
+    innerCard: {
+        flex: 1,
+        padding: 24,
+        justifyContent: 'space-between',
     },
-    shine: {
+    shineRay: {
         position: 'absolute',
-        width: '200%',
+        width: 100,
         height: '200%',
+        backgroundColor: 'rgba(255, 255, 255, 0.15)',
         top: '-50%',
-        left: '-50%',
-        zIndex: 1,
+        left: 0,
+        zIndex: 10,
     },
     cardHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        zIndex: 2,
+        alignItems: 'flex-start',
     },
     overallContainer: {
-        alignItems: 'center',
+        alignItems: 'flex-start',
     },
     overallText: {
-        fontSize: 56,
+        fontSize: 64,
         fontWeight: '900',
-        color: Colors.dark.primary,
-        lineHeight: 56,
-        textShadowColor: Colors.dark.primaryGlow,
-        textShadowOffset: { width: 0, height: 0 },
-        textShadowRadius: 15,
+        color: '#ffffff',
+        lineHeight: 64,
+        textShadowColor: 'rgba(0,0,0,0.5)',
+        textShadowOffset: { width: 4, height: 4 },
+        textShadowRadius: 2,
     },
     overallLabel: {
-        fontSize: 10,
-        fontWeight: '800',
-        color: Colors.dark.textSecondary,
-        letterSpacing: 3,
-        marginTop: -5,
+        fontSize: 12,
+        fontWeight: '900',
+        color: Colors.dark.primary,
+        letterSpacing: 2,
+        marginTop: 4,
     },
     avatarWrapper: {
-        width: 90,
-        height: 90,
-        borderRadius: 45,
-        borderWidth: 2,
-        borderColor: Colors.dark.primary,
+        width: 100,
+        height: 100,
+        position: 'relative',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    avatarBorder: {
+        ...StyleSheet.absoluteFillObject,
+        borderRadius: 50,
+        opacity: 0.6,
+    },
+    avatarInner: {
+        width: 94,
+        height: 94,
+        borderRadius: 47,
+        backgroundColor: '#1a1a24',
         overflow: 'hidden',
-        backgroundColor: Colors.dark.surfaceLight,
-        padding: 2,
     },
     avatar: {
         width: '100%',
         height: '100%',
-        borderRadius: 45,
     },
     avatarPlaceholder: {
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    avatarInitial: {
-        fontSize: 36,
-        fontWeight: '800',
-        color: Colors.dark.textSecondary,
+        flex: 1,
+        backgroundColor: 'rgba(255,255,255,0.05)',
     },
     cardBody: {
         alignItems: 'center',
-        marginTop: 0,
-        zIndex: 2,
+        marginVertical: 10,
     },
     nickname: {
-        fontSize: 28,
+        fontSize: 34,
         fontWeight: '900',
-        color: Colors.dark.text,
-        textAlign: 'center',
+        color: '#ffffff',
         textTransform: 'uppercase',
+        textAlign: 'center',
     },
     position: {
-        fontSize: 14,
+        fontSize: 15,
         fontWeight: '700',
-        color: Colors.dark.primary,
-        textTransform: 'uppercase',
-        marginTop: 2,
-        letterSpacing: 1.5,
-    },
-    personality: {
-        fontSize: 14,
         color: Colors.dark.textSecondary,
-        marginTop: 8,
-        fontWeight: '500',
-        textAlign: 'center',
+        letterSpacing: 1,
+        marginTop: 4,
     },
-    statsContainer: {
+    stickerContainer: {
+        marginTop: 12,
+        paddingHorizontal: 14,
+        paddingVertical: 6,
+        transform: [{ rotate: '-3deg' }],
+        shadowColor: '#000',
+        shadowOffset: { width: 2, height: 2 },
+        shadowOpacity: 0.5,
+        shadowRadius: 3,
+    },
+    stickerBackground: {
+        ...StyleSheet.absoluteFillObject,
+        borderRadius: 4,
+    },
+    stickerText: {
+        color: '#000',
+        fontSize: 13,
+        fontWeight: '900',
+        textTransform: 'uppercase',
+        fontStyle: 'italic',
+    },
+    statsLayout: {
+        flexDirection: 'row',
+        gap: 15,
+    },
+    statsColumn: {
+        flex: 1,
         gap: 10,
-        zIndex: 2,
     },
-    statRow: {
+    statItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
+        gap: 6,
     },
     statLabel: {
-        width: 35,
-        fontSize: 13,
-        fontWeight: '800',
-        color: Colors.dark.textSecondary,
+        color: '#fff',
+        fontSize: 10,
+        fontWeight: '900',
+        width: 25,
     },
-    barBackground: {
+    miniBarContainer: {
         flex: 1,
         height: 8,
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: 'rgba(255,255,255,0.1)',
         borderRadius: 4,
         overflow: 'hidden',
     },
-    barFill: {
+    miniBarFill: {
         height: '100%',
         borderRadius: 4,
-        // Add a slight glow to the bar
-        shadowColor: Colors.dark.primary,
-        shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 0.5,
-        shadowRadius: 5,
     },
     statValue: {
-        width: 25,
-        fontSize: 15,
+        color: '#fff',
+        fontSize: 11,
         fontWeight: '900',
-        color: Colors.dark.text,
+        width: 15,
         textAlign: 'right',
     },
 });

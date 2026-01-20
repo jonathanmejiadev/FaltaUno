@@ -147,13 +147,7 @@ export default function OnboardingIdentity() {
                 </Text>
               </TouchableOpacity>
 
-              {category && (
-                <View style={styles.categoryBadge}>
-                  <Text style={styles.categoryText}>
-                    ¡Sos categoría <Text style={styles.categoryHighlight}>{category}</Text>! Rompela en el próximo partido.
-                  </Text>
-                </View>
-              )}
+
             </View>
 
             {Platform.OS === 'ios' ? (

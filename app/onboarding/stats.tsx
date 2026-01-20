@@ -104,6 +104,8 @@ export default function OnboardingStats() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+
+
         <View style={styles.header}>
           <Text style={styles.title}>¡Fichaje Estrella!</Text>
           <Text style={styles.subtitle}>
@@ -126,10 +128,13 @@ export default function OnboardingStats() {
           overall={avgRating}
         />
 
-        <StatsRadarComponent
-          stats={stats}
-          onStatChange={handleStatChange}
-        />
+        <View style={styles.slidersSection}>
+          <Text style={styles.slidersTitle}>Ajustá tus Atributos</Text>
+          <StatsRadarComponent
+            stats={stats}
+            onStatChange={handleStatChange}
+          />
+        </View>
       </ScrollView>
 
       <View style={styles.buttonRow}>
@@ -181,7 +186,26 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     flexGrow: 1,
-    padding: 24,
+    padding: 20,
+    paddingTop: 10,
+    paddingBottom: 40,
+  },
+  slidersSection: {
+    marginTop: 20,
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderRadius: 20,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.05)',
+  },
+  slidersTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#fff',
+    marginBottom: 15,
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   header: {
     marginBottom: 16,
@@ -200,7 +224,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 8,
-    marginBottom: 24,
+    marginBottom: 0, // Let the card margin handle the space
   },
   step: {
     width: 40,
