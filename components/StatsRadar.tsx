@@ -27,6 +27,12 @@ function getMessage(value: number, messages: string[]): string {
   return messages[3];
 }
 
+function getFeedback(value: number): { text: string; color: string } {
+  if (value > 8) return { text: '¡Elite!', color: Colors.dark.primary };
+  if (value > 5) return { text: 'Pro', color: Colors.dark.accent };
+  return { text: 'Base', color: Colors.dark.textSecondary };
+}
+
 export default function StatsRadarComponent({ stats, onStatChange, readonly = false }: StatsRadarProps) {
   const totalPoints = Object.values(stats).reduce((a, b) => a + b, 0);
   const avgRating = Math.round(totalPoints / 6);
@@ -57,6 +63,9 @@ export default function StatsRadarComponent({ stats, onStatChange, readonly = fa
               <View style={styles.statValueContainer}>
                 <Text style={styles.statValue}>{value}</Text>
               </View>
+              <Text style={[styles.feedbackLabel, { color: getFeedback(value).color }]}>
+                {getFeedback(value).text}
+              </Text>
             </View>
 
             {!readonly ? (
@@ -168,5 +177,11 @@ const styles = StyleSheet.create({
     height: '100%',
     backgroundColor: Colors.dark.primary,
     borderRadius: 4,
+  },
+  feedbackLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    marginLeft: 8,
+    textTransform: 'uppercase',
   },
 });

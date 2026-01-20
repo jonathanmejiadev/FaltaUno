@@ -47,6 +47,7 @@ export interface UserProfile {
   is_versatile: boolean;
   football_specs: FootballSpecs;
   stats_radar: StatsRadar;
+  media: number;
 }
 
 export interface MatchSlot {

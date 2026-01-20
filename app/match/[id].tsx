@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,13 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Image } from 'expo-image';
+import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import {
   X,
   MapPin,
@@ -23,6 +26,11 @@ import {
   Heart,
   UserPlus,
   ListOrdered,
+  Zap,
+  CheckCircle2,
+  ParkingCircle as Car,
+  Bath as Shower,
+  Layers as Square,
 } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 import { useAppStore } from '@/store/useAppStore';
@@ -35,6 +43,7 @@ import {
   MATCH_TYPE_LABELS,
   POSITION_LABELS,
   MatchTypeEnum,
+  PositionEnum,
 } from '@/types';
 
 export default function MatchDetailScreen() {
@@ -50,12 +59,12 @@ export default function MatchDetailScreen() {
   useEffect(() => {
     const loadMatch = async () => {
       if (!id) return;
-      
+
       setIsLoading(true);
       try {
         const matchData = await mockApi.getMatchById(id);
         setMatch(matchData);
-        
+
         if (matchData) {
           const playerIds = matchData.slots.flatMap((s) => s.filled_by);
           const playersData = await mockApi.getUsersByIds(playerIds);
@@ -70,6 +79,12 @@ export default function MatchDetailScreen() {
 
     loadMatch();
   }, [id]);
+
+  const averageLevel = useMemo(() => {
+    if (players.length === 0) return (5.0).toFixed(1);
+    const totalMedia = players.reduce((acc, player) => acc + (player.media || 5.0), 0);
+    return (totalMedia / players.length).toFixed(1);
+  }, [players]);
 
   const handleJoin = async () => {
     if (!match || !user) return;
@@ -159,9 +174,40 @@ export default function MatchDetailScreen() {
             <Text style={styles.formatBadgeText}>{FORMAT_LABELS[match.format]}</Text>
           </View>
         </View>
+
+        {Platform.OS !== 'web' && (
+          <View style={styles.mapContainer}>
+            <MapView
+              style={styles.miniMap}
+              initialRegion={{
+                latitude: Number(match.location.latitude),
+                longitude: Number(match.location.longitude),
+                latitudeDelta: 0.01,
+                longitudeDelta: 0.01,
+              }}
+              scrollEnabled={false}
+              zoomEnabled={false}
+              rotateEnabled={false}
+              pitchEnabled={false}
+              customMapStyle={mapStyle}
+              userInterfaceStyle="dark"
+            >
+              <Marker
+                coordinate={{
+                  latitude: Number(match.location.latitude),
+                  longitude: Number(match.location.longitude),
+                }}
+              >
+                <View style={styles.mapMarker}>
+                  <MaterialCommunityIcons name="soccer" size={16} color="#000" />
+                </View>
+              </Marker>
+            </MapView>
+          </View>
+        )}
       </SafeAreaView>
 
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
@@ -225,6 +271,35 @@ export default function MatchDetailScreen() {
           </View>
         </View>
 
+        <View style={styles.technicalRow}>
+          <View style={styles.techItem}>
+            <Square size={16} color={Colors.dark.primary} />
+            <Text style={styles.techText}>Sintético</Text>
+          </View>
+          <View style={styles.techItem}>
+            <Shower size={16} color={Colors.dark.info} />
+            <Text style={styles.techText}>Vestuarios</Text>
+          </View>
+          <View style={styles.techItem}>
+            <Car size={16} color={Colors.dark.textSecondary} />
+            <Text style={styles.techText}>Parking</Text>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Nivel del Encuentro</Text>
+          <View style={styles.levelCard}>
+            <View style={styles.levelCircle}>
+              <Text style={styles.levelNumber}>{averageLevel}</Text>
+              <Text style={styles.levelLabel}>Media</Text>
+            </View>
+            <View style={styles.levelInfo}>
+              <Text style={styles.levelTitle}>¡Partido de Nivel Pro!</Text>
+              <Text style={styles.levelSubtitle}>Basado en el promedio de los anotados</Text>
+            </View>
+          </View>
+        </View>
+
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Cupos</Text>
@@ -237,9 +312,9 @@ export default function MatchDetailScreen() {
           </View>
 
           {match.slots.map((slot) => (
-            <SlotCard 
-              key={slot.id} 
-              slot={slot} 
+            <SlotCard
+              key={slot.id}
+              slot={slot}
               players={players.filter((p) => slot.filled_by.includes(p.id))}
             />
           ))}
@@ -311,16 +386,38 @@ function SlotCard({ slot, players }: SlotCardProps) {
             <Text style={styles.playerName}>{player.nickname}</Text>
           </View>
         ))}
-        
+
         {Array.from({ length: available }).map((_, i) => (
-          <View key={`empty-${i}`} style={styles.emptySlot}>
-            <Text style={styles.emptySlotText}>Disponible</Text>
+          <View
+            key={`empty-${i}`}
+            style={[
+              styles.emptySlot,
+              slot.role === PositionEnum.GK && styles.emptySlotGK
+            ]}
+          >
+            {slot.role === PositionEnum.GK ? (
+              <View style={styles.gkPlaceholder}>
+                <MaterialCommunityIcons name="hand-back-left" size={16} color="#FFD700" />
+                <Text style={styles.emptySlotTextGK}>Arquero Disponible</Text>
+              </View>
+            ) : (
+              <Text style={styles.emptySlotText}>Disponible</Text>
+            )}
           </View>
         ))}
       </View>
     </View>
   );
 }
+
+const mapStyle = [
+  { elementType: 'geometry', stylers: [{ color: '#242f3e' }] },
+  { elementType: 'labels.text.fill', stylers: [{ color: '#746855' }] },
+  { elementType: 'labels.text.stroke', stylers: [{ color: '#242f3e' }] },
+  { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#38414e' }] },
+  { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#212a37' }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#17263c' }] },
+];
 
 const styles = StyleSheet.create({
   container: {
@@ -383,7 +480,29 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 20,
-    paddingBottom: 120,
+    paddingBottom: 160, // Extra space for safe area
+  },
+  mapContainer: {
+    height: 120,
+    marginHorizontal: 20,
+    marginTop: 8,
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
+  },
+  miniMap: {
+    flex: 1,
+  },
+  mapMarker: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.dark.primary,
+    borderWidth: 3,
+    borderColor: '#000',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   titleSection: {
     marginBottom: 20,
@@ -439,6 +558,77 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.dark.border,
     marginVertical: 12,
     marginLeft: 48,
+  },
+  technicalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+    gap: 10,
+  },
+  techItem: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 10,
+    backgroundColor: Colors.dark.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
+  },
+  techText: {
+    color: Colors.dark.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  levelCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.dark.surface,
+    borderRadius: 20,
+    padding: 16,
+    gap: 16,
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
+  },
+  levelCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: Colors.dark.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: Colors.dark.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  levelNumber: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: '#000',
+  },
+  levelLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#000',
+    marginTop: -2,
+    textTransform: 'uppercase',
+  },
+  levelInfo: {
+    flex: 1,
+  },
+  levelTitle: {
+    color: Colors.dark.text,
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  levelSubtitle: {
+    color: Colors.dark.textSecondary,
+    fontSize: 12,
   },
   section: {
     marginBottom: 24,
@@ -528,24 +718,40 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   emptySlot: {
-    backgroundColor: Colors.dark.border,
+    backgroundColor: Colors.dark.surfaceLight,
     borderRadius: 20,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderWidth: 1,
     borderStyle: 'dashed',
-    borderColor: Colors.dark.textMuted,
+    borderColor: Colors.dark.border,
+  },
+  emptySlotGK: {
+    borderColor: '#FFD700',
+    backgroundColor: 'rgba(255, 215, 0, 0.05)',
+  },
+  gkPlaceholder: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   emptySlotText: {
     color: Colors.dark.textMuted,
     fontSize: 12,
+  },
+  emptySlotTextGK: {
+    color: '#FFD700',
+    fontSize: 12,
+    fontWeight: '700',
   },
   footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: Platform.OS === 'ios' ? 0 : 20, // SafeAreaView takes care of handle
     backgroundColor: Colors.dark.background,
     borderTopWidth: 1,
     borderTopColor: Colors.dark.border,

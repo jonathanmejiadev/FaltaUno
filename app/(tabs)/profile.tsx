@@ -16,6 +16,8 @@ import {
   Trophy,
   Calendar,
   Edit3,
+  Clock,
+  Handshake,
 } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 import { useAppStore } from '@/store/useAppStore';
@@ -56,7 +58,7 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
@@ -113,20 +115,31 @@ export default function ProfileScreen() {
               <Text style={styles.quickStatLabel}>Partidos</Text>
             </View>
           </View>
+
+          <View style={styles.reputationRow}>
+            <View style={styles.reputationBadge}>
+              <Clock size={14} color={Colors.dark.textSecondary} />
+              <Text style={styles.reputationText}>Puntualidad: 100%</Text>
+            </View>
+            <View style={styles.reputationBadge}>
+              <Handshake size={14} color={Colors.dark.textSecondary} />
+              <Text style={styles.reputationText}>Fair Play: Pro</Text>
+            </View>
+          </View>
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Mi Ficha Técnica</Text>
           <StatsRadarComponent
             stats={user.stats_radar}
-            onStatChange={() => {}}
+            onStatChange={() => { }}
             readonly
           />
         </View>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Actividad Reciente</Text>
-          
+
           <View style={styles.activityCard}>
             <View style={styles.activityIcon}>
               <Trophy size={20} color={Colors.dark.primary} />
@@ -301,11 +314,13 @@ const styles = StyleSheet.create({
   activityCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: Colors.dark.surface,
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 10,
+    backgroundColor: Colors.dark.card,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
     gap: 12,
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
   },
   activityIcon: {
     width: 40,
@@ -333,11 +348,40 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 8,
+    shadowColor: Colors.dark.primary,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 8,
+    elevation: 8,
   },
   activityBadgeText: {
-    color: Colors.dark.background,
+    color: '#000',
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
+  reputationRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 20,
+    width: '100%',
+    justifyContent: 'center',
+  },
+  reputationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: Colors.dark.surfaceLight,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
+  },
+  reputationText: {
+    color: Colors.dark.textSecondary,
+    fontSize: 12,
+    fontWeight: '600',
   },
   emptyState: {
     flex: 1,

@@ -34,6 +34,7 @@ const MOCK_USERS: UserProfile[] = [
       dominant_foot: FootEnum.LEFT,
     },
     stats_radar: { pace: 7, shooting: 8, passing: 9, defense: 4, physical: 5, stamina: 7 },
+    media: 7.5,
   },
   {
     id: '2',
@@ -48,6 +49,7 @@ const MOCK_USERS: UserProfile[] = [
       dominant_foot: FootEnum.RIGHT,
     },
     stats_radar: { pace: 5, shooting: 3, passing: 6, defense: 9, physical: 8, stamina: 7 },
+    media: 6.8,
   },
   {
     id: '3',
@@ -62,6 +64,7 @@ const MOCK_USERS: UserProfile[] = [
       dominant_foot: FootEnum.RIGHT,
     },
     stats_radar: { pace: 4, shooting: 2, passing: 5, defense: 8, physical: 7, stamina: 6 },
+    media: 6.2,
   },
 ];
 
@@ -191,6 +194,9 @@ export const mockApi = {
         dominant_foot: data.dominant_foot,
       },
       stats_radar: data.stats_radar,
+      media: Number(
+        (Object.values(data.stats_radar).reduce((a, b) => a + b, 0) / 6).toFixed(1)
+      ),
     };
     console.log('[MockAPI] createUser:', newUser);
     return newUser;
