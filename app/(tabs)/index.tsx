@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   Platform,
   Dimensions,
+  TextInput,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -20,6 +21,8 @@ import {
   Users,
   Shield,
   Goal,
+  Search,
+  X,
 } from 'lucide-react-native';
 import Colors from '@/constants/colors';
 import { useAppStore } from '@/store/useAppStore';
@@ -43,12 +46,67 @@ function getMarkerIcon(match: Match) {
   return { name: 'soccer' as const, color: '#00E676' };
 }
 
+interface MatchMarkerProps {
+  match: Match;
+  isSelected: boolean;
+  onPress: (match: Match) => void;
+}
+
+const MatchMarker = ({ match, isSelected, onPress }: MatchMarkerProps) => {
+  // 1. Hard-check de coordenadas para evitar el bug de la esquina (0,0)
+  if (!match.location?.latitude || !match.location?.longitude) return null;
+
+  const icon = getMarkerIcon(match);
+  const markerColor = isSelected ? '#FFFFFF' : icon.color;
+
+  return (
+    <Marker
+      coordinate={{
+        latitude: Number(match.location.latitude),
+        longitude: Number(match.location.longitude),
+      }}
+      onPress={(e) => {
+        e.stopPropagation(); // Avoid MapView.onPress firing
+        onPress(match);
+      }}
+      zIndex={isSelected ? 999 : 1}
+    >
+      <View style={{
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: markerColor,
+        borderWidth: 3,
+        borderColor: isSelected ? Colors.dark.primary : '#000',
+        alignItems: 'center',
+        justifyContent: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.3,
+        shadowRadius: 3,
+        elevation: 5,
+      }}>
+        <MaterialCommunityIcons
+          name={icon.name}
+          size={16}
+          color="#000"
+        />
+      </View>
+    </Marker>
+  );
+};
+
 export default function DiscoveryScreen() {
   const router = useRouter();
   const { selectedFormat, setSelectedFormat, user } = useAppStore();
   const [matches, setMatches] = useState<Match[]>([]);
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
   const [, setIsLoading] = useState(true);
+  const mapRef = useRef<MapView>(null);
+
+  const centerMap = () => {
+    mapRef.current?.animateToRegion(INITIAL_REGION, 1000);
+  };
 
   const loadMatches = React.useCallback(async () => {
     setIsLoading(true);
@@ -69,9 +127,9 @@ export default function DiscoveryScreen() {
     loadMatches();
   }, [loadMatches]);
 
-  const handleMarkerPress = (match: Match) => {
+  const handleMarkerPress = React.useCallback((match: Match) => {
     setSelectedMatch(match);
-  };
+  }, []);
 
   const handleMatchCardPress = (match: Match) => {
     router.push(`/match/${match.id}`);
@@ -89,6 +147,23 @@ export default function DiscoveryScreen() {
 
   const formats = [null, FormatEnum.F5, FormatEnum.F7, FormatEnum.F11];
 
+  const memoizedMarkers = React.useMemo(() => {
+    return matches.map((match) => {
+      if (!match.location?.latitude || !match.location?.longitude) return null;
+
+      const isSelected = selectedMatch?.id === match.id;
+
+      return (
+        <MatchMarker
+          key={match.id}
+          match={match}
+          isSelected={isSelected}
+          onPress={handleMarkerPress}
+        />
+      );
+    });
+  }, [matches, selectedMatch?.id, handleMarkerPress]);
+
   return (
     <View style={styles.container}>
       <SafeAreaView edges={['top']} style={styles.safeTop}>
@@ -100,6 +175,15 @@ export default function DiscoveryScreen() {
           <TouchableOpacity style={styles.filterButton}>
             <Filter size={20} color={Colors.dark.text} />
           </TouchableOpacity>
+        </View>
+
+        <View style={styles.searchBarContainer}>
+          <Search size={18} color={Colors.dark.textSecondary} style={styles.searchIcon} />
+          <TextInput
+            placeholder="Buscar por zona, cancha o club..."
+            placeholderTextColor={Colors.dark.textMuted}
+            style={styles.searchInput}
+          />
         </View>
 
         <ScrollView
@@ -139,33 +223,10 @@ export default function DiscoveryScreen() {
             showsMyLocationButton={false}
             customMapStyle={mapStyle}
             userInterfaceStyle="dark"
+            onPress={() => setSelectedMatch(null)}
+            ref={mapRef}
           >
-            {matches.map((match) => {
-              const icon = getMarkerIcon(match);
-              return (
-                <Marker
-                  key={match.id}
-                  coordinate={{
-                    latitude: match.location.latitude,
-                    longitude: match.location.longitude,
-                  }}
-                  onPress={() => handleMarkerPress(match)}
-                >
-                  <View style={styles.markerContainer}>
-                    <View style={[
-                      styles.marker,
-                      selectedMatch?.id === match.id && styles.markerSelected,
-                    ]}>
-                      <MaterialCommunityIcons
-                        name={icon.name}
-                        size={18}
-                        color={icon.color}
-                      />
-                    </View>
-                  </View>
-                </Marker>
-              );
-            })}
+            {memoizedMarkers}
           </MapView>
         ) : (
           <View style={styles.webMapPlaceholder}>
@@ -177,6 +238,16 @@ export default function DiscoveryScreen() {
               {matches.length} partidos encontrados
             </Text>
           </View>
+        )}
+
+        {Platform.OS !== 'web' && (
+          <TouchableOpacity
+            style={styles.locationButton}
+            onPress={centerMap}
+            activeOpacity={0.8}
+          >
+            <MaterialCommunityIcons name="crosshairs-gps" size={24} color={Colors.dark.text} />
+          </TouchableOpacity>
         )}
       </View>
 
@@ -192,9 +263,17 @@ export default function DiscoveryScreen() {
                 {FORMAT_LABELS[selectedMatch.format]}
               </Text>
             </View>
-            <Text style={styles.matchPrice}>
-              ${selectedMatch.price.toLocaleString()}
-            </Text>
+            <View style={styles.headerRight}>
+              <Text style={styles.matchPrice}>
+                ${selectedMatch.price.toLocaleString()}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setSelectedMatch(null)}
+                style={styles.closeCardButton}
+              >
+                <X size={20} color={Colors.dark.textSecondary} />
+              </TouchableOpacity>
+            </View>
           </View>
 
           <Text style={styles.matchTitle}>{selectedMatch.title}</Text>
@@ -301,6 +380,27 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: '800',
     color: Colors.dark.text,
+    marginBottom: 16,
+  },
+  searchBarContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: Colors.dark.surface,
+    marginHorizontal: 20,
+    marginBottom: 16,
+    paddingHorizontal: 12,
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    color: Colors.dark.text,
+    fontSize: 14,
   },
   filterButton: {
     width: 44,
@@ -355,9 +455,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
-  markerContainer: {
+  locationButton: {
+    position: 'absolute',
+    right: 20,
+    bottom: 240, // Fijo por encima de las tarjetas
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: Colors.dark.surface,
     alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 10,
+    zIndex: 100,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
   },
+
   marker: {
     width: 40,
     height: 40,
@@ -368,10 +485,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  markerSelected: {
-    backgroundColor: Colors.dark.primaryGlow,
-    transform: [{ scale: 1.1 }],
-  },
+
   matchCard: {
     position: 'absolute',
     bottom: 20,
@@ -387,7 +501,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
   },
   formatBadge: {
     backgroundColor: Colors.dark.primaryGlow,
@@ -410,6 +529,17 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     marginBottom: 12,
+    paddingRight: 24, // Space for close button
+  },
+  closeCardButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: Colors.dark.surface,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: Colors.dark.border,
   },
   matchInfo: {
     gap: 6,
@@ -456,14 +586,10 @@ const styles = StyleSheet.create({
   },
   matchListContainer: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 20,
     left: 0,
     right: 0,
-    backgroundColor: Colors.dark.background,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 16,
-    paddingBottom: 20,
+    backgroundColor: 'transparent',
   },
   matchListTitle: {
     color: Colors.dark.text,
@@ -471,19 +597,27 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     paddingHorizontal: 20,
     marginBottom: 12,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   matchList: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16, // Use contentContainerStyle padding
     gap: 12,
   },
   matchListCard: {
-    width: width * 0.6,
+    width: width * 0.75,
     backgroundColor: Colors.dark.card,
-    borderRadius: 12,
-    padding: 14,
+    borderRadius: 16,
+    padding: 16,
     marginRight: 12,
     borderWidth: 1,
     borderColor: Colors.dark.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4.65,
+    elevation: 8,
   },
   formatBadgeSmall: {
     backgroundColor: Colors.dark.primaryGlow,
