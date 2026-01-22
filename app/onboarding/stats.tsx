@@ -164,9 +164,11 @@ export default function OnboardingStats() {
               nickname={params.nickname || ''}
               avatar={params.avatar}
               stats={stats}
-              mainPosition={params.mainPosition || ''}
+              mainPosition={(params.mainPosition as PositionEnum) || PositionEnum.MID}
               specificRole={params.specificRole}
               overall={avgRating}
+              dominantFoot={params.dominantFoot as FootEnum}
+              category={calculateAgeCategory(params.birthDate ? new Date(params.birthDate) : null)}
             />
 
             {!isPhotoMode && (
