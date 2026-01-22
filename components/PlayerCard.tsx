@@ -16,12 +16,11 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { StatsRadar, PositionEnum, FootEnum, AgeCategoryEnum, POSITION_LABELS, FOOT_LABELS, AGE_CATEGORY_LABELS } from '@/types';
-import Colors from '@/constants/colors';
-import Svg, { Path, Polygon, Line, Circle, Rect, Defs, LinearGradient as SvgGradient, Stop } from 'react-native-svg';
+import Svg, { Polygon, Line, Circle, Rect } from 'react-native-svg';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const CARD_WIDTH = SCREEN_WIDTH * 0.88;
-const ASPECT_RATIO = 1 / 1.5; // TALLER card to fit all content
+const ASPECT_RATIO = 1 / 1.5;
 const CARD_HEIGHT = CARD_WIDTH / ASPECT_RATIO;
 
 interface PlayerCardProps {
@@ -38,32 +37,24 @@ interface PlayerCardProps {
 const RARITY = {
     ELITE: {
         color: '#FFD700',
-        borderOuter: '#00D9FF',
-        borderInner: '#A855F7',
         label: 'NIVEL SELECCIÓN',
         glow: '#FFD700',
         message: '¡Un distinto! Nivel selección.'
     },
     PRO: {
         color: '#A855F7',
-        borderOuter: '#00D9FF',
-        borderInner: '#A855F7',
         label: 'JUGADOR DE PRIMERA',
         glow: '#A855F7',
         message: 'Marcás la diferencia en la cancha.'
     },
     AMATEUR: {
         color: '#00EAFF',
-        borderOuter: '#00D9FF',
-        borderInner: '#A855F7',
         label: 'CRACK DE BARRIO',
         glow: '#00EAFF',
         message: 'El que nunca te deja a gamba.'
     },
     BASE: {
         color: '#E5E4E2',
-        borderOuter: '#00D9FF',
-        borderInner: '#A855F7',
         label: 'PROMESA',
         glow: '#E5E4E2',
         message: '¡A meterle garra y crecer!'
@@ -98,7 +89,6 @@ export default function PlayerCard({
 }: PlayerCardProps) {
     const rarity = useMemo(() => getRarity(overall), [overall]);
 
-    // Animation Values
     const shineX = useSharedValue(-CARD_WIDTH * 1.5);
     const rotateX = useSharedValue(0);
     const rotateY = useSharedValue(0);
@@ -155,14 +145,8 @@ export default function PlayerCard({
         <View style={styles.container}>
             <GestureDetector gesture={gesture}>
                 <Animated.View style={[styles.cardWrapper, cardAnimatedStyle]}>
-                    {/* Shield-shaped card with double border */}
                     <View style={styles.shieldContainer}>
-                        {/* Outer border - MATCHES RARITY COLOR with Intense Glow */}
-                        <View style={[styles.borderOuter, {
-                            borderColor: rarity.color,
-                            shadowColor: rarity.color,
-                        }]}>
-                            {/* Inner metallic border for 3D depth */}
+                        <View style={[styles.borderOuter, { borderColor: rarity.color, shadowColor: rarity.color }]}>
                             <LinearGradient
                                 colors={['#e5e4e2', '#ffffff', '#b4b4b4', '#e5e4e2']}
                                 start={{ x: 0, y: 0 }}
@@ -174,59 +158,44 @@ export default function PlayerCard({
                                         colors={['#0a1628', '#16213e', '#0f1a2e']}
                                         style={styles.cardGradient}
                                     >
-                                        {/* Football Field Background - NO STAR */}
                                         <Svg style={styles.fieldSvg} viewBox="0 0 300 400">
-                                            {/* Field lines ONLY - NO Champions star here */}
                                             <Line x1="50" y1="200" x2="250" y2="200" stroke="rgba(0, 217, 255, 0.15)" strokeWidth="2" />
                                             <Line x1="50" y1="280" x2="250" y2="280" stroke="rgba(0, 217, 255, 0.15)" strokeWidth="2" />
                                             <Line x1="50" y1="320" x2="250" y2="320" stroke="rgba(0, 217, 255, 0.15)" strokeWidth="2" />
-
-                                            {/* Center circle */}
                                             <Circle cx="150" cy="200" r="40" fill="none" stroke="rgba(0, 217, 255, 0.15)" strokeWidth="2" />
-
-                                            {/* Goal area */}
                                             <Rect x="120" y="310" width="60" height="20" fill="none" stroke="rgba(0, 217, 255, 0.15)" strokeWidth="2" />
-
-                                            {/* Diagonal lines for depth */}
                                             <Line x1="0" y1="150" x2="100" y2="250" stroke="rgba(0, 217, 255, 0.08)" strokeWidth="1" />
                                             <Line x1="300" y1="150" x2="200" y2="250" stroke="rgba(0, 217, 255, 0.08)" strokeWidth="1" />
                                         </Svg>
 
-                                        {/* Glossy Effect */}
                                         <Animated.View style={[styles.glossyOverlay, shineStyle]} />
 
-                                        {/* Card Content */}
                                         <View style={styles.contentContainer}>
-                                            {/* Top Left: Overall + Position */}
-                                            <View style={styles.topLeftCorner}>
-                                                <Animated.Text style={[styles.overallLarge, overallPulseStyle, {
-                                                    color: '#fff',
-                                                    textShadowColor: rarity.glow,
-                                                    textShadowOffset: { width: 0, height: 0 },
-                                                    textShadowRadius: 20,
-                                                }]}>
-                                                    {Math.round(overall * 10)}
-                                                </Animated.Text>
-                                                <Text style={styles.positionSmall}>
-                                                    {POSITION_LABELS[mainPosition]}{specificRole ? ` - ${specificRole}` : ''}
-                                                </Text>
+                                            <View style={styles.headerSection}>
+                                                <View style={styles.ratingContainer}>
+                                                    <Animated.Text style={[styles.overallLarge, overallPulseStyle, {
+                                                        color: '#fff',
+                                                        textShadowColor: rarity.glow,
+                                                        textShadowOffset: { width: 0, height: 0 },
+                                                        textShadowRadius: 20,
+                                                    }]}>
+                                                        {Math.round(overall * 10)}
+                                                    </Animated.Text>
+                                                </View>
+
+                                                <View style={styles.categoryContainer}>
+                                                    <LinearGradient
+                                                        colors={['rgba(255,255,255,0.15)', 'rgba(255,255,255,0.05)']}
+                                                        style={styles.categoryBadge}
+                                                    >
+                                                        <Text style={styles.categoryText}>
+                                                            {AGE_CATEGORY_LABELS[category]}
+                                                        </Text>
+                                                    </LinearGradient>
+                                                </View>
                                             </View>
 
-                                            {/* Top Right: Category Badge */}
-                                            <View style={styles.topRightCorner}>
-                                                <LinearGradient
-                                                    colors={['rgba(255,255,255,0.15)', 'rgba(255,255,255,0.05)']}
-                                                    style={styles.categoryBadge}
-                                                >
-                                                    <Text style={styles.categoryText}>
-                                                        {AGE_CATEGORY_LABELS[category]}
-                                                    </Text>
-                                                </LinearGradient>
-                                            </View>
-
-                                            {/* Center: Avatar + Star (30% LARGER) */}
                                             <View style={styles.avatarStarSection}>
-                                                {/* Champions League Star - ENLARGED 20% */}
                                                 <Svg style={styles.starSvg} viewBox="0 0 200 200">
                                                     <Polygon
                                                         points="100,20 120,80 185,80 135,115 155,175 100,140 45,175 65,115 15,80 80,80"
@@ -251,33 +220,36 @@ export default function PlayerCard({
                                                 )}
                                             </View>
 
-                                            {/* Player Name & Foot Section */}
-                                            <View style={styles.nameSection}>
-                                                <Text style={styles.playerName} numberOfLines={1}>{nickname}</Text>
-                                                <View style={styles.footBadge}>
-                                                    <MaterialCommunityIcons name="shoe-cleat" size={12} color="#fff" />
-                                                    <Text style={styles.footText}>Pie: {FOOT_LABELS[dominantFoot]}</Text>
+                                            <View style={styles.identitySection}>
+                                                <Text style={styles.playerName} numberOfLines={1}>
+                                                    {nickname}
+                                                </Text>
+
+                                                <Text style={styles.playerPosition}>
+                                                    {POSITION_LABELS[mainPosition]}{specificRole ? ` - ${specificRole}` : ''}
+                                                </Text>
+
+                                                <View style={styles.footBadgeMini}>
+                                                    <MaterialCommunityIcons name="shoe-cleat" size={12} color="rgba(255,255,255,0.8)" />
+                                                    <Text style={styles.footTextSmall}>Pie: {FOOT_LABELS[dominantFoot]}</Text>
+                                                </View>
+
+                                                <View style={styles.badgeContainer}>
+                                                    <LinearGradient
+                                                        colors={overall >= 9.0 ? ['#FFD700', '#FFA500', '#FF8C00'] : [rarity.color, `${rarity.color}DD`, `${rarity.color}AA`]}
+                                                        style={styles.plateContainer}
+                                                        start={{ x: 0, y: 0 }}
+                                                        end={{ x: 1, y: 1 }}
+                                                    >
+                                                        <View style={styles.plateInlay}>
+                                                            <Text style={styles.badgeTitle}>{rarity.label}</Text>
+                                                        </View>
+                                                    </LinearGradient>
+                                                    <Text style={styles.badgeSubtitle}>{rarity.message}</Text>
                                                 </View>
                                             </View>
 
-                                            {/* BADGE ÉPICO - Physical Plate Style */}
-                                            <View style={styles.badgeContainer}>
-                                                <LinearGradient
-                                                    colors={overall >= 9.0 ? ['#FFD700', '#FFA500', '#FF8C00'] : [rarity.color, `${rarity.color}DD`, `${rarity.color}AA`]}
-                                                    style={styles.plateContainer}
-                                                    start={{ x: 0, y: 0 }}
-                                                    end={{ x: 1, y: 1 }}
-                                                >
-                                                    <View style={styles.plateInlay}>
-                                                        <Text style={styles.badgeTitle}>{rarity.label}</Text>
-                                                    </View>
-                                                </LinearGradient>
-                                                <Text style={styles.badgeSubtitle}>{rarity.message}</Text>
-                                            </View>
-
-                                            {/* Stats - DOUBLE COLUMN LAYOUT - ALL 6 VISIBLE */}
                                             <View style={styles.statsDoubleColumn}>
-                                                {/* Left Column */}
                                                 <View style={styles.statsColumnLeft}>
                                                     {statsEntries.slice(0, 3).map(([key, value], index) => {
                                                         const statColor = value >= 8 ? rarity.color : '#fff';
@@ -300,7 +272,6 @@ export default function PlayerCard({
                                                     })}
                                                 </View>
 
-                                                {/* Right Column */}
                                                 <View style={styles.statsColumnRight}>
                                                     {statsEntries.slice(3, 6).map(([key, value], index) => {
                                                         const statColor = value >= 8 ? rarity.color : '#fff';
@@ -324,7 +295,6 @@ export default function PlayerCard({
                                                 </View>
                                             </View>
 
-                                            {/* Bottom: Watermark Logo */}
                                             <View style={styles.logoWatermark}>
                                                 <Text style={styles.logoText}>FALTA UNO</Text>
                                                 <Text style={styles.logoSubtext}>CARDS</Text>
@@ -352,26 +322,26 @@ const styles = StyleSheet.create({
     cardWrapper: {
         width: CARD_WIDTH,
         height: CARD_HEIGHT,
-        padding: 10, // Added padding to avoid shadow clipping
+        padding: 10,
     },
     shieldContainer: {
         flex: 1,
-        overflow: 'visible', // CRITICAL: Allow glow to show outside
+        overflow: 'visible',
     },
     borderOuter: {
         flex: 1,
         borderWidth: 5,
         borderRadius: 28,
         shadowOffset: { width: 0, height: 0 },
-        shadowOpacity: 1, // Full opacity
-        shadowRadius: 35, // Intense glow
+        shadowOpacity: 1,
+        shadowRadius: 35,
         elevation: 35,
         padding: 2,
     },
     metallicBorderWrapper: {
         flex: 1,
         borderRadius: 26,
-        padding: 2, // The "line" thickness
+        padding: 2,
     },
     borderInner: {
         flex: 1,
@@ -398,40 +368,86 @@ const styles = StyleSheet.create({
     contentContainer: {
         flex: 1,
         paddingHorizontal: 15,
-        paddingTop: 0, // NO top padding - let overall handle it
-        paddingBottom: 15,
+        paddingVertical: 15,
+        justifyContent: 'space-between',
     },
-    topLeftCorner: {
-        position: 'absolute',
-        top: -10, // More negative
-        left: -10,
+    headerSection: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
-        zIndex: 10,
-        padding: 25, // Even more padding
-        overflow: 'visible', // CRITICAL
+        paddingTop: 10,
+        paddingHorizontal: 5,
+    },
+    ratingContainer: {
+        alignItems: 'center',
+    },
+    categoryContainer: {
+        alignItems: 'center',
     },
     overallLarge: {
-        fontSize: 72,
+        fontSize: 68,
         fontWeight: '900',
-        lineHeight: 72,
-        includeFontPadding: false, // Remove extra padding
+        lineHeight: 68,
+        includeFontPadding: false,
     },
-    positionSmall: {
-        fontSize: 14,
+    avatarStarSection: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: 180,
+        position: 'relative',
+    },
+    starSvg: {
+        position: 'absolute',
+        width: 220,
+        height: 220,
+    },
+    avatarFrameLarge: {
+        width: 160,
+        height: 160,
+        borderRadius: 80,
+        overflow: 'hidden',
+        borderWidth: 4,
+        borderColor: 'rgba(255,255,255,0.6)',
+        position: 'absolute',
+    },
+    avatarImage: {
+        width: '100%',
+        height: '100%',
+    },
+    identitySection: {
+        alignItems: 'center',
+        gap: 2,
+    },
+    playerName: {
+        fontSize: 32,
         fontWeight: '900',
         color: '#fff',
-        marginTop: 2,
-        letterSpacing: 1,
+        textAlign: 'center',
         textTransform: 'uppercase',
+        textShadowColor: 'rgba(0,0,0,0.9)',
+        textShadowOffset: { width: 0, height: 3 },
+        textShadowRadius: 6,
+        letterSpacing: 2,
     },
-    roleSmall: {
-        display: 'none', // Removed separate role style
+    playerPosition: {
+        fontSize: 13,
+        fontWeight: '700',
+        color: 'rgba(255,255,255,0.8)',
+        textTransform: 'uppercase',
+        letterSpacing: 1,
     },
-    topRightCorner: {
-        position: 'absolute',
-        top: 15,
-        right: 15,
-        zIndex: 10,
+    footBadgeMini: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        marginTop: 2,
+        marginBottom: 4,
+    },
+    footTextSmall: {
+        fontSize: 10,
+        fontWeight: '600',
+        color: 'rgba(255,255,255,0.6)',
+        textTransform: 'uppercase',
     },
     categoryBadge: {
         paddingHorizontal: 12,
@@ -446,70 +462,8 @@ const styles = StyleSheet.create({
         color: '#fff',
         letterSpacing: 1.5,
     },
-    avatarStarSection: {
-        alignItems: 'center',
-        marginTop: 60,
-        marginBottom: 5,
-        height: 160,
-        position: 'relative',
-    },
-    starSvg: {
-        position: 'absolute',
-        width: 210, // Enlarged 20%
-        height: 210,
-        top: -25,
-    },
-    avatarFrameLarge: {
-        width: 155, // Enlarged 20%
-        height: 155,
-        borderRadius: 80,
-        overflow: 'hidden',
-        borderWidth: 4,
-        borderColor: 'rgba(255,255,255,0.6)',
-        position: 'absolute',
-        top: 2,
-    },
-    avatarImage: {
-        width: '100%',
-        height: '100%',
-    },
-    nameSection: {
-        alignItems: 'center',
-        marginBottom: 8,
-    },
-    playerName: {
-        fontSize: 28,
-        fontWeight: '900',
-        color: '#fff',
-        textAlign: 'center',
-        textTransform: 'uppercase',
-        textShadowColor: 'rgba(0,0,0,0.9)',
-        textShadowOffset: { width: 0, height: 3 },
-        textShadowRadius: 6,
-        letterSpacing: 2,
-    },
-    footBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0,0,0,0.4)',
-        paddingHorizontal: 10,
-        paddingVertical: 2,
-        borderRadius: 20,
-        marginTop: 2,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
-        gap: 5,
-    },
-    footText: {
-        fontSize: 10,
-        fontWeight: '800',
-        color: '#fff',
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-    },
     badgeContainer: {
         alignItems: 'center',
-        marginBottom: 10, // Reduced more
     },
     plateContainer: {
         padding: 2,
@@ -531,52 +485,38 @@ const styles = StyleSheet.create({
         borderColor: 'rgba(0,0,0,0.3)',
     },
     badgeTitle: {
-        fontSize: 12, // Reduced from 14
+        fontSize: 12,
         fontWeight: '900',
         color: '#000',
-        letterSpacing: 1.2, // Reduced from 1.5
+        letterSpacing: 1.2,
         textAlign: 'center',
-        textShadowColor: 'rgba(255,255,255,0.5)',
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 2,
     },
     badgeSubtitle: {
-        fontSize: 11, // Reduced from 12
+        fontSize: 10,
         fontWeight: '600',
-        color: 'rgba(255,255,255,0.9)',
+        color: 'rgba(255,255,255,0.7)',
         fontStyle: 'italic',
-        marginTop: 3, // Reduced from 4
+        marginTop: 2,
         textAlign: 'center',
     },
     statsDoubleColumn: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         paddingHorizontal: 35,
-        marginBottom: 10, // More space for logo
     },
     statsColumnLeft: {
         alignItems: 'flex-start',
-        gap: 4, // VERY tight
+        gap: 4,
     },
     statsColumnRight: {
         alignItems: 'flex-end',
-        gap: 4, // VERY tight
+        gap: 4,
     },
     statItemCompact: {
         alignItems: 'center',
     },
     statValueCompact: {
-        fontSize: 24, // Even smaller
-        fontWeight: '900',
-        textShadowColor: 'rgba(0,0,0,0.9)',
-        textShadowOffset: { width: 0, height: 2 },
-        textShadowRadius: 5,
-    },
-    statItem: {
-        alignItems: 'center',
-    },
-    statValueLarge: {
-        fontSize: 32,
+        fontSize: 24,
         fontWeight: '900',
         textShadowColor: 'rgba(0,0,0,0.9)',
         textShadowOffset: { width: 0, height: 2 },
@@ -585,14 +525,13 @@ const styles = StyleSheet.create({
     statLabelSmall: {
         fontSize: 10,
         fontWeight: '900',
-        color: '#E5E4E2', // Platinum/Gris Platino
-        marginTop: 2,
+        color: '#E5E4E2',
+        marginTop: -2,
         letterSpacing: 1.2,
     },
     logoWatermark: {
         alignItems: 'center',
-        marginTop: 'auto',
-        opacity: 0.8, // Watermark effect
+        opacity: 0.8,
     },
     logoText: {
         fontSize: 14,
