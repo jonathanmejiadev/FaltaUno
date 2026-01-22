@@ -35,10 +35,10 @@ interface PlayerCardProps {
 }
 
 const RARITY = {
-    ELITE: { color: '#FFD700', label: 'NIVEL SELECCIÓN', glow: '#FFD700', message: '¡Un distinto! Nivel selección.' },
+    ELITE: { color: '#FFD700', label: 'NIVEL SELECCIÓN', glow: '#FFD700', message: '¡Un distinto!' },
     PRO: { color: '#A855F7', label: 'JUGADOR DE PRIMERA', glow: '#A855F7', message: 'Marcás la diferencia en la cancha.' },
-    AMATEUR: { color: '#00EAFF', label: 'CRACK DE BARRIO', glow: '#00EAFF', message: 'El que nunca te deja a gamba.' },
-    BASE: { color: '#E5E4E2', label: 'PROMESA', glow: '#E5E4E2', message: '¡A meterle garra y crecer!' },
+    AMATEUR: { color: '#00EAFF', label: 'CRACK DE BARRIO', glow: '#00EAFF', message: 'Nunca decepciona.' },
+    BASE: { color: '#E5E4E2', label: 'PROMESA', glow: '#E5E4E2', message: '¡En progreso!' },
 };
 
 const getRarity = (overall: number) => {
@@ -318,7 +318,7 @@ const styles = StyleSheet.create({
     },
     shimmerOverlay: { position: 'absolute', top: 0, bottom: 0, width: 50, opacity: 0.7 },
     badgeTitle: { fontSize: 10, fontWeight: '900', color: '#fff', letterSpacing: 1.3, textAlign: 'center' },
-    badgeSubtitle: { fontSize: 8, fontWeight: '700', color: 'rgba(255,255,255,0.65)', fontStyle: 'italic', marginTop: 2, textAlign: 'center' },
+    badgeSubtitle: { fontSize: 10, fontWeight: '700', color: 'rgba(255,255,255,0.65)', fontStyle: 'italic', marginTop: 5, textAlign: 'center' },
     statsDoubleColumn: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 30, marginTop: 4 },
     statsColumnLeft: { alignItems: 'flex-start', gap: 5 },
     statsColumnRight: { alignItems: 'flex-end', gap: 5 },
