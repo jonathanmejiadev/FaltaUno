@@ -169,7 +169,7 @@ export default function PlayerCard({
 
                                     {/* Foot Badge: Icon + Text only */}
                                     <View style={styles.footBadgeMini}>
-                                        <MaterialCommunityIcons name="shoe-cleat" size={11} color="#00FFFF" />
+                                        <MaterialCommunityIcons name="shoe-cleat" size={11} color={rarity.color} />
                                         <Text style={styles.footTextSmall}>{FOOT_LABELS[dominantFoot]}</Text>
                                     </View>
 
@@ -206,12 +206,13 @@ export default function PlayerCard({
                                                 <MotiView key={stat.key} from={{ opacity: 0, translateX: -20 }} animate={{ opacity: 1, translateX: 0 }} transition={{ delay: 400 + (index * 100), type: 'spring' }} style={styles.statItemCompact}>
                                                     <View style={styles.statContent}>
                                                         <Text style={styles.statValueCompact}>{Math.round(stat.value * 10)}</Text>
-                                                        <Text style={styles.statLabelSmall}>{STAT_LABELS[stat.key as keyof StatsRadar]}</Text>
+                                                        <Text style={[styles.statLabelSmall, { color: rarity.color }]}>{STAT_LABELS[stat.key as keyof StatsRadar]}</Text>
                                                     </View>
                                                     <View style={styles.progressBarContainer}>
                                                         <View style={[styles.progressBarFill, {
                                                             width: `${percentage * 100}%`,
-                                                            backgroundColor: percentage >= 0.8 ? rarity.color : '#00FFFF'
+                                                            backgroundColor: rarity.color,
+                                                            shadowColor: rarity.color
                                                         }]} />
                                                     </View>
                                                 </MotiView>
@@ -225,12 +226,13 @@ export default function PlayerCard({
                                                 <MotiView key={stat.key} from={{ opacity: 0, translateX: 20 }} animate={{ opacity: 1, translateX: 0 }} transition={{ delay: 400 + (index * 100), type: 'spring' }} style={styles.statItemCompact}>
                                                     <View style={styles.statContent}>
                                                         <Text style={styles.statValueCompact}>{Math.round(stat.value * 10)}</Text>
-                                                        <Text style={styles.statLabelSmall}>{STAT_LABELS[stat.key as keyof StatsRadar]}</Text>
+                                                        <Text style={[styles.statLabelSmall, { color: rarity.color }]}>{STAT_LABELS[stat.key as keyof StatsRadar]}</Text>
                                                     </View>
                                                     <View style={styles.progressBarContainer}>
                                                         <View style={[styles.progressBarFill, {
                                                             width: `${percentage * 100}%`,
-                                                            backgroundColor: percentage >= 0.8 ? rarity.color : '#00FFFF'
+                                                            backgroundColor: rarity.color,
+                                                            shadowColor: rarity.color
                                                         }]} />
                                                     </View>
                                                 </MotiView>
@@ -284,7 +286,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(10, 22, 40, 0.7)'
     },
     masterText: { fontSize: 11, fontWeight: '900', letterSpacing: 1.2 },
-    avatarStarSection: { alignItems: 'center', justifyContent: 'center', height: 145, position: 'relative', marginTop: -5 },
+    avatarStarSection: { alignItems: 'center', justifyContent: 'center', height: 145, position: 'relative', marginTop: -15 },
     starSvg: { position: 'absolute', width: 200, height: 200 },
     avatarFrameLarge: {
         width: 140,
@@ -297,7 +299,7 @@ const styles = StyleSheet.create({
     avatarImage: { width: '100%', height: '100%' },
     identitySection: { alignItems: 'center', gap: 3, marginVertical: 10 },
     playerName: { fontSize: 25, fontWeight: '900', color: '#fff', textAlign: 'center', textTransform: 'uppercase', textShadowColor: 'rgba(0,0,0,0.8)', textShadowOffset: { width: 0, height: 3 }, textShadowRadius: 6, letterSpacing: 3 },
-    playerPosition: { fontSize: 11, fontWeight: '700', color: '#00FFFF', textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 2 },
+    playerPosition: { fontSize: 11, fontWeight: '700', color: '#00FFFF', textTransform: 'uppercase', letterSpacing: 1.2, marginBottom: 8 },
     footBadgeMini: { flexDirection: 'row', alignItems: 'center', gap: 5, marginBottom: 5 },
     footTextSmall: { fontSize: 10, fontWeight: '700', color: 'rgba(255,255,255,0.85)', textTransform: 'uppercase', letterSpacing: 0.5 },
     badgeContainer: { alignItems: 'center', marginTop: 4 },
@@ -323,7 +325,7 @@ const styles = StyleSheet.create({
     statItemCompact: { alignItems: 'center', width: 80 },
     statContent: { flexDirection: 'row', alignItems: 'center', gap: 6 },
     statValueCompact: { fontSize: 24, fontWeight: '900', color: '#fff', textShadowColor: 'rgba(0,0,0,0.9)', textShadowOffset: { width: 0, height: 3 }, textShadowRadius: 5 },
-    statLabelSmall: { fontSize: 9, fontWeight: '900', color: '#00FFFF', letterSpacing: 1 },
+    statLabelSmall: { fontSize: 9, fontWeight: '900', letterSpacing: 1 },
     progressBarContainer: {
         width: '100%',
         height: 3,
@@ -335,7 +337,6 @@ const styles = StyleSheet.create({
     progressBarFill: {
         height: '100%',
         borderRadius: 2,
-        shadowColor: '#00FFFF',
         shadowOffset: { width: 0, height: 0 },
         shadowOpacity: 0.8,
         shadowRadius: 3
