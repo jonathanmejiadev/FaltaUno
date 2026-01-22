@@ -132,7 +132,11 @@ export default function OnboardingStats() {
 
       <SafeAreaView style={styles.safeArea}>
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[
+            styles.scrollContent,
+            isPhotoMode && { flex: 1, justifyContent: 'center', paddingBottom: 0 }
+          ]}
+          scrollEnabled={!isPhotoMode}
           showsVerticalScrollIndicator={false}
         >
           {/* Header - Hidden in Photo Mode */}
@@ -229,18 +233,23 @@ export default function OnboardingStats() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               style={styles.photoModeOverlay}
+              pointerEvents="box-none"
             >
               <TouchableOpacity
-                style={styles.closePhotoBtn}
+                style={[styles.closePhotoBtn, { top: insets.top + 10 }]}
                 onPress={() => setIsPhotoMode(false)}
               >
-                <X size={28} color="#fff" />
+                <X size={24} color="#fff" />
               </TouchableOpacity>
 
-              <Text style={styles.photoModeHint}>Tomá una captura de pantalla</Text>
+              <View style={styles.photoModeContent} pointerEvents="none">
+                <Text style={styles.photoModeHint}>Tomá una captura de pantalla</Text>
+              </View>
 
-              <View style={styles.photoModeFooter}>
+              <View style={styles.photoModeFooter} pointerEvents="none">
+                <View style={styles.watermarkLine} />
                 <Text style={styles.appName}>FALTA UNO</Text>
+                <Text style={styles.appTagline}>THE ULTIMATE CARDS</Text>
               </View>
             </MotiView>
           )}
@@ -390,35 +399,62 @@ const styles = StyleSheet.create({
   },
   photoModeOverlay: {
     ...StyleSheet.absoluteFillObject,
-    padding: 40,
-    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    justifyContent: 'flex-end', // Footer at bottom
     alignItems: 'center',
+    zIndex: 100,
   },
   closePhotoBtn: {
-    alignSelf: 'flex-start',
+    position: 'absolute',
+    left: 20,
     width: 44,
     height: 44,
     backgroundColor: 'rgba(0,0,0,0.5)',
     borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 110,
+  },
+  photoModeContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   photoModeHint: {
-    color: 'rgba(255,255,255,0.5)',
-    fontSize: 12,
-    fontWeight: '600',
+    position: 'absolute',
+    top: 130, // Way above the card
+    color: 'rgba(255,255,255,0.3)',
+    fontSize: 11,
+    fontWeight: '700',
     letterSpacing: 2,
     textTransform: 'uppercase',
   },
   photoModeFooter: {
     width: '100%',
     alignItems: 'center',
+    paddingBottom: 40,
+  },
+  watermarkLine: {
+    width: 40,
+    height: 2,
+    backgroundColor: Colors.dark.primary,
+    marginBottom: 10,
+    borderRadius: 1,
+    opacity: 0.5,
   },
   appName: {
-    color: Colors.dark.primary,
-    fontSize: 24,
+    color: '#fff',
+    fontSize: 22,
     fontWeight: '900',
-    letterSpacing: 8,
+    letterSpacing: 6,
+    opacity: 0.9,
+  },
+  appTagline: {
+    color: Colors.dark.primary,
+    fontSize: 8,
+    fontWeight: '900',
+    letterSpacing: 3,
+    marginTop: 4,
     opacity: 0.8,
   },
   bottomSheet: {
