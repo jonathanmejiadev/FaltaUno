@@ -17,7 +17,7 @@ const STAT_CONFIG = [
   { key: 'passing' as const, label: 'Pase', icon: 'shoe-cleat' as const, messages: ['Impreciso', 'Correcto', 'Fino', '¡Maestro!'] },
   { key: 'defense' as const, label: 'Defensa', icon: 'shield-check' as const, messages: ['Flojo', 'Aguanta', 'Firme', '¡Muro!'] },
   { key: 'physical' as const, label: 'Físico', icon: 'arm-flex' as const, messages: ['Liviano', 'Normal', 'Fuerte', '¡Tanque!'] },
-  { key: 'stamina' as const, label: 'Resistencia', icon: 'lightning-bolt' as const, messages: ['Poco', 'Regular', 'Bueno', '¡Infinito!'] },
+  { key: 'stamina' as const, label: 'Resistencia', icon: 'lightning-bolt' as const, messages: ['Poca', 'Regular', 'Buena', '¡Infinita!'] },
 ];
 
 function getMessage(value: number, messages: string[]): string {
