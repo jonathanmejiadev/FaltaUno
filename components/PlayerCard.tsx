@@ -165,7 +165,7 @@ export default function PlayerCard({
                                 {/* Identity Section - More Vertical Space */}
                                 <View style={styles.identitySection}>
                                     <Text style={styles.playerName} numberOfLines={1}>{nickname}</Text>
-                                    <Text style={styles.playerPosition}>{POSITION_LABELS[mainPosition]}{specificRole ? ` - ${specificRole}` : ''}</Text>
+                                    <Text style={[styles.playerPosition, { color: rarity.color }]}>{POSITION_LABELS[mainPosition]}{specificRole ? ` - ${specificRole}` : ''}</Text>
 
                                     {/* Foot Badge: Icon + Text only */}
                                     <View style={styles.footBadgeMini}>
